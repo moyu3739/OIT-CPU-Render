@@ -4,6 +4,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include "Primitive.h"
+#include "FrameBuffer.h"
 
 
 class Displayer{
@@ -27,17 +28,17 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer(const std::vector<std::vector<Fragment>>& frame_buffer){
-        int width = frame_buffer.size();
-        int height = frame_buffer[0].size();
+    void LoadFromFrameBuffer(const FrameBuffer& frame_buffer){
+        int width = frame_buffer.GetWidth();
+        int height = frame_buffer.GetHeight();
         front_buffer = cv::Mat(height, width, CV_8UC3);
 
         for(int x = 0; x < width; x++){ // here value of (x, y) satisfies right-top corner
             for(int y = 0; y < height; y++){
                 front_buffer.at<cv::Vec3b>(height - 1 - y, x) = cv::Vec3b(
-                    static_cast<unsigned char>(frame_buffer[x][y].color.b * 255),
-                    static_cast<unsigned char>(frame_buffer[x][y].color.g * 255),
-                    static_cast<unsigned char>(frame_buffer[x][y].color.r * 255)
+                    static_cast<unsigned char>(frame_buffer.At(x, y).color.b * 255),
+                    static_cast<unsigned char>(frame_buffer.At(x, y).color.g * 255),
+                    static_cast<unsigned char>(frame_buffer.At(x, y).color.r * 255)
                 );
                 // printf("(%f, %f, %f) ", frame_buffer[i][j].color.r, frame_buffer[i][j].color.g, frame_buffer[i][j].color.b);
             }

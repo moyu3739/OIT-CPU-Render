@@ -1,8 +1,23 @@
 #pragma once
 
-#define CheckDel(ptr) if(ptr){delete ptr; ptr = nullptr;} // check and delete
 
-#define CheckDelArr(ptr) if(ptr){delete[] ptr; ptr = nullptr;} // check and delete array
+// check and delete
+template <typename T>
+void CheckDel(T*& ptr){
+    if(ptr){
+        delete ptr;
+        ptr = nullptr;
+    }
+}
+
+// check and delete array
+template <typename T>
+void CheckDelArr(T*& ptr){
+    if(ptr){
+        delete[] ptr;
+        ptr = nullptr;
+    }
+}
 
 // clamp x to [a, b]
 template <typename T>

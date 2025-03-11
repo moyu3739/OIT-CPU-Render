@@ -15,48 +15,54 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="src\usecase\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Application.cpp">
+    <ClCompile Include="src\usecase\Application.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImageTexture.cpp">
+    <ClCompile Include="src\kernel\ImageTexture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Pipeline.h">
+    <ClInclude Include="src\kernel\Pipeline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\ItensityShader.h">
+    <ClInclude Include="src\usecase\ItensityShader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Primitive.h">
+    <ClInclude Include="src\kernel\Primitive.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Displayer.h">
+    <ClInclude Include="src\kernel\Displayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\FreeTimer.h">
+    <ClInclude Include="src\usecase\FreeTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Timer.h">
+    <ClInclude Include="src\usecase\Timer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\kernel\Shader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Application.h">
+    <ClInclude Include="src\usecase\Application.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\utility.h">
+    <ClInclude Include="src\kernel\utility.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Texture.h">
+    <ClInclude Include="src\kernel\Texture.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImageTexture.h">
+    <ClInclude Include="src\kernel\ImageTexture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\PipelineManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\FrameBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

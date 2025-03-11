@@ -57,9 +57,7 @@ public:
 public:
     ItensityFragmentShader() {}
 
-    ~ItensityFragmentShader() {
-        CheckDel(texture);
-    }
+    ~ItensityFragmentShader() {}
 
     Output Call(const Input& input){
         obj_color = texture->Sample(input.texcoord);

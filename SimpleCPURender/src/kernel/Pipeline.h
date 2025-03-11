@@ -8,19 +8,37 @@
 #include <glm/ext.hpp>
 #include "utility.h"
 #include "Primitive.h"
+#include "FrameBuffer.h"
+
+
+class PipelineBase{
+public:
+    PipelineBase() {}
+
+    virtual ~PipelineBase() {}
+
+    virtual void Render(FrameBuffer& frame_buffer) = 0;
+};
 
 
 template <class VS, class FS>
-class Pipeline{
+class Pipeline: public PipelineBase{
 public:
-    Pipeline(int width, int height){
-        this->width = width;
-        this->height = height;
-        frame_buffer.resize(width, std::vector<Fragment>(height, {glm::vec4(0.0f), INFINITY}));
-    }
+    Pipeline(int width, int height): width(width), height(height) {}
+
+    Pipeline(int width, int height, VS* vertex_shader, FS* fragment_shader)
+        : width(width), height(height), vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}
 
     ~Pipeline(){
-        DestroyShader();
+        // DestroyShader();
+    }
+
+    void LoadVertexShader(VS* vertex_shader){
+        this->vertex_shader = vertex_shader;
+    }
+
+    void LoadFragmentShader(FS* fragment_shader){
+        this->fragment_shader = fragment_shader;
     }
 
     void LoadShader(VS* vertex_shader, FS* fragment_shader){
@@ -28,22 +46,27 @@ public:
         this->fragment_shader = fragment_shader;
     }
 
-    void DestroyShader(){
-        CheckDel(vertex_shader);
-        CheckDel(fragment_shader);
+    // void DestroyShader(){
+    //     CheckDel(vertex_shader);
+    //     CheckDel(fragment_shader);
+    // }
+
+    void SetVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
+        this->vertex_buffer = &vertex_buffer;
     }
 
-    void LoadVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
-        this->vertex_buffer = vertex_buffer; // NEED TO BE OPTIMIZED
-    }
+    // void AddVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
+    //     // NEED TO BE OPTIMIZED
+    //     this->vertex_buffer->insert(this->vertex_buffer->end(), vertex_buffer->begin(), vertex_buffer->end());
+    // }
 
-    void Render(){
-        assert(vertex_buffer.size() % 3 == 0);
-    
-        for (int i = 0; i < vertex_buffer.size(); i += 3){
-            typename VS::Input& vs_input_v1 = vertex_buffer[i];
-            typename VS::Input& vs_input_v2 = vertex_buffer[i + 1];
-            typename VS::Input& vs_input_v3 = vertex_buffer[i + 2];
+    virtual void Render(FrameBuffer& frame_buffer){
+        assert(vertex_buffer->size() % 3 == 0);
+
+        for (int i = 0; i < vertex_buffer->size(); i += 3){
+            const typename VS::Input& vs_input_v1 = vertex_buffer->at(i);
+            const typename VS::Input& vs_input_v2 = vertex_buffer->at(i + 1);
+            const typename VS::Input& vs_input_v3 = vertex_buffer->at(i + 2);
             
             // call vertex-shader
             typename VS::Output vs_output_v1 = vertex_shader->Call(vs_input_v1);
@@ -71,12 +94,11 @@ public:
             pixel_max_x = std::min(width - 1, pixel_max_x);
             pixel_min_y = std::max(0, pixel_min_y);
             pixel_max_y = std::min(height - 1, pixel_max_y);
-
-            // printf("rendering triangle %d: (%d, %d) - (%d, %d)\n", i / 3, pixel_min_x, pixel_min_y, pixel_max_x, pixel_max_y);
     
             // rasterization
             for (int x = pixel_min_x; x <= pixel_max_x; x++){
                 for (int y = pixel_min_y; y <= pixel_max_y; y++){
+                    /*************************** CAN BEN ENCAPSULATED *******************************/
                     // map pixel to clipping space, where (-1, 1) is visible region
                     float screen_x = Pixel2Coord(x, width);
                     float screen_y = Pixel2Coord(y, height);
@@ -90,6 +112,7 @@ public:
                     if (barycentric.x < 0 || barycentric.y < 0 || barycentric.z < 0){
                         continue;
                     }
+                    /*********************************************************************************/
     
                     // perspective division
                     barycentric /= glm::vec3(w1, w2, w3);
@@ -106,24 +129,14 @@ public:
                     }
 
                     // write color to frame buffer
-                    if (screen_depth < frame_buffer[x][y].depth){ // get max depth, note that z-axis points out of the screen
+                    if (screen_depth < frame_buffer.At(x, y).depth){ // get max depth, note that z-axis points out of the screen
                         // call fragment-shader
                         typename FS::Output fs_output = fragment_shader->Call(fs_input);
     
-                        frame_buffer[x][y].color = fs_output.__color__;
-                        frame_buffer[x][y].depth = screen_depth;
+                        frame_buffer.At(x, y).color = fs_output.__color__;
+                        frame_buffer.At(x, y).depth = screen_depth;
                     }
                 }
-            }
-        }
-    }
-    
-    // clear the frame buffer
-    void ClearFrameBuffer(){
-        for(auto& row : frame_buffer){
-            for(auto& pixel : row){
-                pixel.color = glm::vec4(0.0f);
-                pixel.depth = INFINITY;
             }
         }
     }
@@ -138,9 +151,8 @@ public:
         return (2.0f * pixel + 1.0f) / range - 1.0f;
     }
 
-public:
-    std::vector<typename VS::Input> vertex_buffer;
-    std::vector<std::vector<Fragment>> frame_buffer; // a `Fragment` for each pixel
+private:
+    const std::vector<typename VS::Input>* vertex_buffer;
 
 public:
     int width;
