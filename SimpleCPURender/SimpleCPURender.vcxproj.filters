@@ -18,18 +18,21 @@
     <ClCompile Include="src\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderPipeline.cpp">
+    <ClCompile Include="src\Application.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImageTexture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\RenderPipeline.h">
+    <ClInclude Include="src\Pipeline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\ItensityShader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vertex.h">
+    <ClInclude Include="src\Primitive.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Displayer.h">
@@ -39,6 +42,21 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Timer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Application.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImageTexture.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

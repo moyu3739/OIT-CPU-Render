@@ -132,6 +132,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,16 +146,22 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\ImageTexture.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\RenderPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Displayer.h" />
     <ClInclude Include="src\FreeTimer.h" />
-    <ClInclude Include="src\RenderPipeline.h" />
-    <ClInclude Include="src\Timer.h" />
-    <ClInclude Include="src\Vertex.h" />
+    <ClInclude Include="src\ImageTexture.h" />
+    <ClInclude Include="src\Pipeline.h" />
     <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\Timer.h" />
+    <ClInclude Include="src\Primitive.h" />
+    <ClInclude Include="src\ItensityShader.h" />
+    <ClInclude Include="src\utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
