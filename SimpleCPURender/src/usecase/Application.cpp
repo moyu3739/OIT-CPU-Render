@@ -97,7 +97,7 @@ void Application::LoadVertexBuffer(){
     }
 }
 
-void Application::InitPipelineParallel(){
+void Application::InitPipeline(){
     //////// set vertex-shader parameters
     auto vshader = new ItensityVertexShader;
     vshaders.emplace_back(vshader);
@@ -115,17 +115,17 @@ void Application::InitPipelineParallel(){
     vshader->view = GetViewTransform(eye, target, up);
 
     // initialize projection transform
-    // constexpr float fovy = glm::radians(60.0f); // field of view
-    // const float aspect = 1.0f * width / height; // aspect of the window (width / height)
-    // const float znear = 0.01f; // near plane for clipping
-    // const float zfar = 100.0f; // far plane for clipping
-    // vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
-
-    const float orth_width = 15.0f;
-    const float orth_height = orth_width / width * height;
-    const float znear = 0.1f; // near plane for clipping
+    constexpr float fovy = glm::radians(60.0f); // field of view
+    const float aspect = 1.0f * width / height; // aspect of the window (width / height)
+    const float znear = 0.01f; // near plane for clipping
     const float zfar = 100.0f; // far plane for clipping
-    vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
+    vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
+
+    // const float orth_width = 15.0f;
+    // const float orth_height = orth_width / width * height;
+    // const float znear = 0.1f; // near plane for clipping
+    // const float zfar = 100.0f; // far plane for clipping
+    // vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
 
     for (const auto& nvb: vertex_buffers) {
         const std::string& model_name = nvb.first;
@@ -149,7 +149,7 @@ void Application::InitPipelineParallel(){
     }
 }
 
-Application::MyPipeline* Application::InitPipelineSerial(){
+Application::MyPipeline* Application::InitPipelineCustom(){
     //////// set vertex-shader parameters
     auto vshader = new ItensityVertexShader;
     vshaders.emplace_back(vshader);
@@ -191,7 +191,7 @@ Application::MyPipeline* Application::InitPipelineSerial(){
     // fshader->texture = new CheckerTexture(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f), 16.0f);
     
     //////// load shaders
-    return new MyPipeline(width, height, vshader, fshader);
+    return new MyPipeline(vshader, fshader);
 }
 
 glm::mat4 Application::GetModelTransform(const glm::vec3& translation, float rotation, float scale){

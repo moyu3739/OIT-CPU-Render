@@ -9,8 +9,8 @@
 
 class PipelineManager {
 public:
-    PipelineManager(int width, int height)
-        : width(width), height(height), frame_buffer(width, height) {}
+    PipelineManager(int width, int height, BufferVerticalOrder bvo)
+        : frame_buffer(width, height, bvo) {}
 
     ~PipelineManager() {
         for (PipelineBase* pipeline: opa_pipelines) CheckDel(pipeline);
@@ -22,7 +22,7 @@ public:
     // @return  shared pointer to the created pipeline
     template <class VS, class FS>
     Pipeline<VS, FS>* CreatePipeline(bool is_transparent) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(width, height);
+        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>;
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
@@ -35,7 +35,7 @@ public:
     // @return  shared pointer to the created pipeline
     template <class VS, class FS>
     Pipeline<VS, FS>* CreatePipeline(VS* vertex_shader, FS* fragment_shader, bool is_transparent) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(width, height, vertex_shader, fragment_shader);
+        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(vertex_shader, fragment_shader);
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
@@ -50,8 +50,8 @@ public:
     template <class VS, class FS>
     Pipeline<VS, FS>* CreatePipeline(const std::vector<typename VS::Input>& vertex_buffer, 
                                      VS* vertex_shader, FS* fragment_shader, bool is_transparent) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(width, height, vertex_shader, fragment_shader);
-        pipeline->SetVertexBuffer(vertex_buffer);
+        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(vertex_shader, fragment_shader);
+        pipeline->BoundVertexBuffer(vertex_buffer); // bind vertex buffer
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;

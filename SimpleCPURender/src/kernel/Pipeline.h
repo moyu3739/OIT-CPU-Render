@@ -24,24 +24,29 @@ public:
 template <class VS, class FS>
 class Pipeline: public PipelineBase{
 public:
-    Pipeline(int width, int height): width(width), height(height) {}
+    // Pipeline(int width, int height): width(width), height(height) {}
 
-    Pipeline(int width, int height, VS* vertex_shader, FS* fragment_shader)
-        : width(width), height(height), vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}
+    // Pipeline(int width, int height, VS* vertex_shader, FS* fragment_shader)
+    //     : width(width), height(height), vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}.
+
+    Pipeline() {}
+
+    Pipeline(VS* vertex_shader, FS* fragment_shader)
+        : vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}
 
     ~Pipeline(){
         // DestroyShader();
     }
 
-    void LoadVertexShader(VS* vertex_shader){
+    void BoundVertexShader(VS* vertex_shader){
         this->vertex_shader = vertex_shader;
     }
 
-    void LoadFragmentShader(FS* fragment_shader){
+    void BoundFragmentShader(FS* fragment_shader){
         this->fragment_shader = fragment_shader;
     }
 
-    void LoadShader(VS* vertex_shader, FS* fragment_shader){
+    void BoundShader(VS* vertex_shader, FS* fragment_shader){
         this->vertex_shader = vertex_shader;
         this->fragment_shader = fragment_shader;
     }
@@ -51,7 +56,7 @@ public:
     //     CheckDel(fragment_shader);
     // }
 
-    void SetVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
+    void BoundVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
         this->vertex_buffer = &vertex_buffer;
     }
 
@@ -62,6 +67,8 @@ public:
 
     virtual void Render(FrameBuffer& frame_buffer){
         assert(vertex_buffer->size() % 3 == 0);
+        int width = frame_buffer.GetWidth();
+        int height = frame_buffer.GetHeight();
 
         for (int i = 0; i < vertex_buffer->size(); i += 3){
             const typename VS::Input& vs_input_v1 = vertex_buffer->at(i);
@@ -129,12 +136,12 @@ public:
                     }
 
                     // write color to frame buffer
-                    if (screen_depth < frame_buffer.At(x, y).depth){ // get max depth, note that z-axis points out of the screen
+                    if (screen_depth < frame_buffer.DepthAtCoord(x, y)){ // get max depth, note that z-axis points out of the screen
                         // call fragment-shader
                         typename FS::Output fs_output = fragment_shader->Call(fs_input);
     
-                        frame_buffer.At(x, y).color = fs_output.__color__;
-                        frame_buffer.At(x, y).depth = screen_depth;
+                        frame_buffer.ColorAtCoord(x, y) = fs_output.__color__;
+                        frame_buffer.DepthAtCoord(x, y) = screen_depth;
                     }
                 }
             }
@@ -155,8 +162,6 @@ private:
     const std::vector<typename VS::Input>* vertex_buffer;
 
 public:
-    int width;
-    int height;
     VS* vertex_shader = nullptr;
     FS* fragment_shader = nullptr;
 };

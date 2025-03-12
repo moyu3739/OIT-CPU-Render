@@ -8,8 +8,8 @@
 #include "Timer.h"
 
 
-void CircularRenderParallel(Application& app) {
-    app.InitPipelineParallel();
+void CircularRender(Application& app) {
+    app.InitPipeline();
 
     const float T = 3.0f;
     const float Y = 1.0f;
@@ -27,13 +27,8 @@ void CircularRenderParallel(Application& app) {
         // float s = 1.0f + 0.3f * sin(r);
         app.vshaders[0]->model = app.GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.5f);
 
-        // app.pipeline.fragment_shader->obj_color.r = 0.75f + 0.25f * sin(r);
-        // app.pipeline.fragment_shader->obj_color.g = 0.75f + 0.25f * sin(r + 2.0f/3.0f * 3.14159f);
-        // app.pipeline.fragment_shader->obj_color.b = 0.75f + 0.25f * sin(r - 2.0f/3.0f * 3.14159f);
 
-        // app.pipeline.fragment_shader->light_pos.x = 100.0f * sin(4 * r);
-        // app.pipeline.fragment_shader->light_pos.y = 100.f;
-        // app.pipeline.fragment_shader->light_pos.z = 100.0f * cos(4 * r);
+        // app.Render();
 
         float start_render = tm.ReadTimer();
         app.pipeline_manager.Render();
@@ -46,6 +41,7 @@ void CircularRenderParallel(Application& app) {
         float start_show = tm.ReadTimer();
         app.displayer.Show();
         float duration_show = tm.ReadTimer() - start_show;
+
 
         // 计算帧率
         float now = tm.ReadTimer();
@@ -60,8 +56,8 @@ void CircularRenderParallel(Application& app) {
     }
 }
 
-void CircularRenderSerial(Application& app) {
-    auto pipeline = app.InitPipelineSerial();
+void CircularRenderCustom(Application& app) {
+    auto pipeline = app.InitPipelineCustom();
     FrameBuffer frame_buffer(app.width, app.height);
 
     const float T = 3.0f;
@@ -91,15 +87,15 @@ void CircularRenderSerial(Application& app) {
 
         float start_render = tm.ReadTimer();
 
-        pipeline->SetVertexBuffer(app.vertex_buffers["Babala hair"]);
+        pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
         app.fshaders[0]->texture = app.models["Babala hair"].texture;
         pipeline->Render(frame_buffer);
 
-        pipeline->SetVertexBuffer(app.vertex_buffers["Babala body"]);
+        pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
         app.fshaders[0]->texture = app.models["Babala body"].texture;
         pipeline->Render(frame_buffer);
 
-        pipeline->SetVertexBuffer(app.vertex_buffers["Babala face"]);
+        pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
         app.fshaders[0]->texture = app.models["Babala face"].texture;
         pipeline->Render(frame_buffer);
 
@@ -127,9 +123,14 @@ void CircularRenderSerial(Application& app) {
     }
 }
 
+void RenderFrame(Application& app) {
+    app.InitPipeline();
+    app.Render(0);
+}
+
 
 int main(){
-    Application app(1000, 800);
+    Application app(800, 600);
 
     // app.LoadModel("Ankila", "asset/obj/Ankila.obj", "asset/texture/Ankila.png");
     app.LoadModel("Babala hair", "asset/obj/Babala/hair.obj", "asset/texture/Babala/hair.png");
@@ -138,9 +139,9 @@ int main(){
     // app.ResetNormalAll();
     app.LoadVertexBuffer();
 
-    // app.Render();
-    // CircularRenderParallel(app);
-    CircularRenderSerial(app);
+    // RenderFrame(app);
+    CircularRender(app);
+    // CircularRenderCustom(app);
     
     
     return 0;

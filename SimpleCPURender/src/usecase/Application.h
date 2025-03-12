@@ -31,7 +31,7 @@ class Application{
     using MyPipeline = Pipeline<ItensityVertexShader, ItensityFragmentShader>;
 public:
     Application(int width, int height)
-        : width(width), height(height), pipeline_manager(width, height) {}
+        : width(width), height(height), pipeline_manager(width, height, TOP_DOWN) {}
 
     ~Application() {
         // clear shaders
@@ -47,14 +47,14 @@ public:
 
     void LoadVertexBuffer();
 
-    void InitPipelineParallel();
+    void InitPipeline();
 
-    MyPipeline* InitPipelineSerial();
+    MyPipeline* InitPipelineCustom();
 
-    void Render() {
+    void Render(int delay = 1) {
         pipeline_manager.Render();
         displayer.LoadFromFrameBuffer(pipeline_manager.GetFrameBuffer());
-        displayer.KeepShow();
+        displayer.Show(delay);
     }
 
     // get model transformation
