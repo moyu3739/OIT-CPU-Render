@@ -22,13 +22,10 @@ private:
     class Wrapper{
         using WrapFunc = glm::vec4 (*)(int, int, int, int, glm::vec4*, const glm::vec4&);
     public:
-        Wrapper(WrapMode wrap_mode) {
-            SetupWrapFunction(wrap_mode);
-        }
+        Wrapper(WrapMode wrap_mode): wrap_func(GetWrapFunction(wrap_mode)) {}
 
-        Wrapper(WrapMode wrap_mode, const glm::vec4& border_color): border_color(border_color) {
-            SetupWrapFunction(wrap_mode);
-        }
+        Wrapper(WrapMode wrap_mode, const glm::vec4& border_color)
+            : wrap_func(GetWrapFunction(wrap_mode)), border_color(border_color) {}
 
         // wrap (x, y) in data[width x height]
         glm::vec4 Wrap(glm::vec4* data, int width, int height, int x, int y) const {
@@ -37,20 +34,16 @@ private:
 
     private:
         // setup wrap function pointer
-        void SetupWrapFunction(WrapMode wrap_mode) {
+        static WrapFunc GetWrapFunction(WrapMode wrap_mode) {
             switch (wrap_mode) {
                 case REPEAT:
-                    wrap_func = WrapRepeat;
-                    break;
+                    return WrapRepeat;
                 case CLAMP_TO_EDGE:
-                    wrap_func = WrapClampToEdge;
-                    break;
+                    return WrapClampToEdge;
                 case MIRRORED_REPEAT:
-                    wrap_func = WrapMirroredRepeat;
-                    break;
+                    return WrapMirroredRepeat;
                 case CLAMP_TO_BORDER:
-                    wrap_func = WrapClampToBorder;
-                    break;
+                    return WrapClampToBorder;
             }
         }
 
@@ -63,39 +56,35 @@ private:
         static glm::vec4 WrapClampToBorder(int x, int y, int width, int height, glm::vec4 data[], const glm::vec4& border_color);
 
     private:
-        WrapFunc wrap_func;
+        const WrapFunc wrap_func;
         glm::vec4 border_color;
     };
 
     class Filter{
-        using FilterFunc = glm::vec4 (*)(Wrapper*, glm::vec4*, int, int, const glm::vec2&);
+        using FilterFunc = glm::vec4 (*)(const Wrapper*, glm::vec4*, int, int, const glm::vec2&);
     public:
-        Filter(FilterMode filter_mode) {
-            SetupFiltrateFunction(filter_mode);
-        }
+        Filter(FilterMode filter_mode): filter_func(GetFiltrateFunction(filter_mode)) {}
 
-        glm::vec4 Filtrate(Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) {
+        glm::vec4 Filtrate(const Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) const {
             return filter_func(wrapper, data, width, height, uv);
         }
 
     private:
-        void SetupFiltrateFunction(FilterMode filter_mode){
+        static FilterFunc GetFiltrateFunction(FilterMode filter_mode){
             switch (filter_mode) {
                 case NEAREST:
-                    filter_func = FiltrateNearest;
-                    break;
+                    return FiltrateNearest;
                 case LINEAR:
-                    filter_func = FiltrateLinear;
-                    break;
+                    return FiltrateLinear;
             }
         }
 
-        static glm::vec4 FiltrateNearest(Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv);
+        static glm::vec4 FiltrateNearest(const Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv);
 
-        static glm::vec4 FiltrateLinear(Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv);
+        static glm::vec4 FiltrateLinear(const Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv);
 
     private:
-        FilterFunc filter_func;
+        const FilterFunc filter_func;
     };
 
 public:
@@ -162,13 +151,12 @@ public:
     void FreeImage();
 
 protected:
-    glm::vec4 border_color = glm::vec4(0.0f);
     int width;
     int height;
     glm::vec4* data = nullptr;
     bool stb_loaded = false;
 
 private:
-    Wrapper* wrapper = nullptr;
-    Filter* filter = nullptr;
+    const Wrapper* wrapper = nullptr;
+    const Filter* filter = nullptr;
 };

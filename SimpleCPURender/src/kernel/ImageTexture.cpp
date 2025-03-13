@@ -29,13 +29,13 @@ glm::vec4 ImageTexture::Wrapper::WrapClampToBorder(int x, int y, int width, int 
     return data[y * width + x];
 }
 
-glm::vec4 ImageTexture::Filter::FiltrateNearest(Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) {
+glm::vec4 ImageTexture::Filter::FiltrateNearest(const Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) {
     int x = static_cast<int>(uv.x * width);
     int y = static_cast<int>(uv.y * height);
     return wrapper->Wrap(data, width, height, x, y);
 }
 
-glm::vec4 ImageTexture::Filter::FiltrateLinear(Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) {
+glm::vec4 ImageTexture::Filter::FiltrateLinear(const Wrapper* wrapper, glm::vec4* data, int width, int height, const glm::vec2& uv) {
     int x0 = static_cast<int>(uv.x * width);
     int y0 = static_cast<int>(uv.y * height);
     float du = uv.x * width - x0;

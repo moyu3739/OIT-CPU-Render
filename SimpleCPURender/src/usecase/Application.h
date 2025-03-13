@@ -35,8 +35,8 @@ public:
 
     ~Application() {
         // clear shaders
-        for (auto& vshader : vshaders) CheckDel(vshader);
-        for (auto& fshader : fshaders) CheckDel(fshader);
+        for (auto& vshader : vshaders) delete vshader;
+        for (auto& fshader : fshaders) delete fshader;
         // clear textures
         for (auto& model : models) CheckDel(model.second.texture);
     }

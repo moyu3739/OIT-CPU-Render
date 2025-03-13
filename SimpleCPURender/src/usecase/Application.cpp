@@ -145,7 +145,7 @@ void Application::InitPipeline(){
         fshader->texture = obj.texture;
         
         //////// load shaders
-        pipeline_manager.CreatePipeline(vertex_buffer, vshader, fshader, false);
+        pipeline_manager.CreatePipeline(vertex_buffer, vshader, fshader, true);
     }
 }
 
@@ -167,17 +167,17 @@ Application::MyPipeline* Application::InitPipelineCustom(){
     vshader->view = GetViewTransform(eye, target, up);
 
     // initialize projection transform
-    // constexpr float fovy = glm::radians(60.0f); // field of view
-    // const float aspect = 1.0f * width / height; // aspect of the window (width / height)
-    // const float znear = 0.01f; // near plane for clipping
-    // const float zfar = 100.0f; // far plane for clipping
-    // vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
-
-    const float orth_width = 15.0f;
-    const float orth_height = orth_width / width * height;
-    const float znear = 0.1f; // near plane for clipping
+    constexpr float fovy = glm::radians(60.0f); // field of view
+    const float aspect = 1.0f * width / height; // aspect of the window (width / height)
+    const float znear = 0.01f; // near plane for clipping
     const float zfar = 100.0f; // far plane for clipping
-    vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
+    vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
+
+    // const float orth_width = 15.0f;
+    // const float orth_height = orth_width / width * height;
+    // const float znear = 0.1f; // near plane for clipping
+    // const float zfar = 100.0f; // far plane for clipping
+    // vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
 
     //////// set fragment-shader parameters
     auto fshader = new ItensityFragmentShader;

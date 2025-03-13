@@ -17,26 +17,22 @@ public:
 
     virtual ~PipelineBase() {}
 
-    virtual void Render(FrameBuffer& frame_buffer) = 0;
+    // render the pipeline
+    // @param[in] frame_buffer  frame buffer
+    // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
+    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false) = 0;
 };
 
 
 template <class VS, class FS>
 class Pipeline: public PipelineBase{
 public:
-    // Pipeline(int width, int height): width(width), height(height) {}
-
-    // Pipeline(int width, int height, VS* vertex_shader, FS* fragment_shader)
-    //     : width(width), height(height), vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}.
-
     Pipeline() {}
 
     Pipeline(VS* vertex_shader, FS* fragment_shader)
         : vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}
 
-    ~Pipeline(){
-        // DestroyShader();
-    }
+    ~Pipeline() {}
 
     void BoundVertexShader(VS* vertex_shader){
         this->vertex_shader = vertex_shader;
@@ -51,24 +47,17 @@ public:
         this->fragment_shader = fragment_shader;
     }
 
-    // void DestroyShader(){
-    //     CheckDel(vertex_shader);
-    //     CheckDel(fragment_shader);
-    // }
-
     void BoundVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
         this->vertex_buffer = &vertex_buffer;
     }
 
-    // void AddVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
-    //     // NEED TO BE OPTIMIZED
-    //     this->vertex_buffer->insert(this->vertex_buffer->end(), vertex_buffer->begin(), vertex_buffer->end());
-    // }
-
-    virtual void Render(FrameBuffer& frame_buffer){
+    // render the pipeline
+    // @param[in] frame_buffer  frame buffer
+    // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
+    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false) {
         assert(vertex_buffer->size() % 3 == 0);
-        int width = frame_buffer.GetWidth();
-        int height = frame_buffer.GetHeight();
+        int width = frame_buffer->GetWidth();
+        int height = frame_buffer->GetHeight();
 
         for (int i = 0; i < vertex_buffer->size(); i += 3){
             const typename VS::Input& vs_input_v1 = vertex_buffer->at(i);
@@ -105,7 +94,7 @@ public:
             // rasterization
             for (int x = pixel_min_x; x <= pixel_max_x; x++){
                 for (int y = pixel_min_y; y <= pixel_max_y; y++){
-                    /*************************** CAN BEN ENCAPSULATED *******************************/
+                    /*************************** CAN BE ENCAPSULATED *******************************/
                     // map pixel to clipping space, where (-1, 1) is visible region
                     float screen_x = Pixel2Coord(x, width);
                     float screen_y = Pixel2Coord(y, height);
@@ -136,12 +125,12 @@ public:
                     }
 
                     // write color to frame buffer
-                    if (screen_depth < frame_buffer.DepthAtCoord(x, y)){ // get max depth, note that z-axis points out of the screen
+                    if (frame_buffer->DepthTest(screen_depth, x, y)){ // get max depth, note that z-axis points out of the screen
                         // call fragment-shader
                         typename FS::Output fs_output = fragment_shader->Call(fs_input);
     
-                        frame_buffer.ColorAtCoord(x, y) = fs_output.__color__;
-                        frame_buffer.DepthAtCoord(x, y) = screen_depth;
+                        if (use_oit) frame_buffer->HandleNewFragment(fs_output.__color__, screen_depth, x, y);
+                        else frame_buffer->CoverFragment(fs_output.__color__, screen_depth, x, y);
                     }
                 }
             }

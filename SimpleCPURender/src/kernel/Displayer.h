@@ -28,19 +28,19 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer(const FrameBuffer& frame_buffer) {
-        // LoadFromFrameBuffer8UC3(frame_buffer);
-        LoadFromFrameBuffer32FC4(frame_buffer);
+    void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) {
+        LoadFromFrameBuffer8UC3(frame_buffer);
+        // LoadFromFrameBuffer32FC3(frame_buffer);
     }
 
-    void LoadFromFrameBuffer8UC3(const FrameBuffer& frame_buffer){
-        int width = frame_buffer.GetWidth();
-        int height = frame_buffer.GetHeight();
+    void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer){
+        int width = frame_buffer->GetWidth();
+        int height = frame_buffer->GetHeight();
         front_buffer = cv::Mat(height, width, CV_8UC3);
         
         for(int row = 0; row < height; row++){ // here value of (row, col) satisfies right-top corner
             for(int col = 0; col < width; col++){
-                const glm::vec4& color = frame_buffer.GetColorAtIndex(row, col);
+                const glm::vec3& color = frame_buffer->GetColorAtIndex(row, col);
                 front_buffer.at<cv::Vec3b>(row, col) = cv::Vec3b(
                     static_cast<unsigned char>(color.b * 255),
                     static_cast<unsigned char>(color.g * 255),
@@ -50,9 +50,9 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer32FC4(const FrameBuffer& frame_buffer){
-        front_buffer = cv::Mat(frame_buffer.GetHeight(), frame_buffer.GetWidth(), CV_32FC4,
-                                const_cast<glm::vec4*>(frame_buffer.GetColorBuffer()));
+    void LoadFromFrameBuffer32FC3(const FrameBuffer* frame_buffer){
+        front_buffer = cv::Mat(frame_buffer->GetHeight(), frame_buffer->GetWidth(), CV_32FC3,
+                                const_cast<glm::vec3*>(frame_buffer->GetColorBuffer()));
     }
 
     void Show(int delay = 1){

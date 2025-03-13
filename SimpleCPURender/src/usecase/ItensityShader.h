@@ -66,7 +66,7 @@ public:
         glm::vec3 diffuse = (kd * glm::max(glm::dot(input.world_normal, light_dir), 0.0f)) * obj_color * light_color;
         // glm::vec3 diffuse = (kd * glm::abs(glm::dot(input.world_normal, light_dir))) * obj_color * light_color;
         glm::vec3 color = ambient + diffuse;
-        return Output{glm::vec4(color, 1.0f)};
+        return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
     }
 
     // interpolate a vertex attribute

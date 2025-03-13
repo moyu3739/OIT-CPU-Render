@@ -9,12 +9,14 @@
 
 class PipelineManager {
 public:
-    PipelineManager(int width, int height, BufferVerticalOrder bvo)
-        : frame_buffer(width, height, bvo) {}
+    PipelineManager(int width, int height, BufferVerticalOrder bvo) {
+        frame_buffer = new FrameBuffer(width, height, bvo, true);
+    }
 
     ~PipelineManager() {
-        for (PipelineBase* pipeline: opa_pipelines) CheckDel(pipeline);
-        for (PipelineBase* pipeline: tra_pipelines) CheckDel(pipeline);
+        for (PipelineBase* pipeline: opa_pipelines) delete pipeline;
+        for (PipelineBase* pipeline: tra_pipelines) delete pipeline;
+        delete frame_buffer;
     }
 
     // create a pipeline
@@ -45,38 +47,38 @@ public:
     // @param[in] vertex_buffer  vertex buffer
     // @param[in] vertex_shader  vertex shader
     // @param[in] fragment_shader  fragment shader
-    // @param[in] is_transparent  whether the pipeline is transparent
+    // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored in this pipeline
     // @return  shared pointer to the created pipeline
     template <class VS, class FS>
     Pipeline<VS, FS>* CreatePipeline(const std::vector<typename VS::Input>& vertex_buffer, 
-                                     VS* vertex_shader, FS* fragment_shader, bool is_transparent) {
+                                     VS* vertex_shader, FS* fragment_shader, bool use_oit) {
         Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(vertex_shader, fragment_shader);
         pipeline->BoundVertexBuffer(vertex_buffer); // bind vertex buffer
-        if (is_transparent) tra_pipelines.emplace_back(pipeline);
+        if (use_oit) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
     }
 
     // render all pipelines
     void Render() {
-        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer);
-        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer);
+        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false);
+        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true);
+        frame_buffer->Blend();
     }
 
-    const FrameBuffer& GetFrameBuffer() const {
+    const FrameBuffer* GetFrameBuffer() const {
         return frame_buffer;
     }
 
     // clear the frame buffer
-    void ClearFrameBuffer(){
-        frame_buffer.Clear();
+    // @param[in] bg_color  background color
+    void ClearFrameBuffer(const glm::vec3 bg_color = glm::vec3(0.0f)) {
+        frame_buffer->Clear(bg_color);
     }
 
 private:
-    int width;
-    int height;
     std::vector<PipelineBase*> opa_pipelines; // opaque pipelines
     std::vector<PipelineBase*> tra_pipelines; // transparent pipelines
-    FrameBuffer frame_buffer; // a `Fragment` for each pixel
+    FrameBuffer* frame_buffer; // a `Fragment` for each pixel
 };
 
