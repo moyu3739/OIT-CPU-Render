@@ -1,6 +1,6 @@
 #include <iostream>
-#include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 #include "Application.h"
 #include "Pipeline.h"
 #include "Displayer.h"
