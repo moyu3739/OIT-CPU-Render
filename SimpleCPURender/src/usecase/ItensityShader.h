@@ -60,22 +60,13 @@ public:
     ~ItensityFragmentShader() {}
 
     Output Call(const Input& input){
-        obj_color = texture->Sample(input.texcoord);
+        // obj_color = texture->Sample(input.texcoord);
         glm::vec3 ambient = ka * obj_color;
         glm::vec3 light_dir = glm::normalize(light_pos - input.world_pos);
         glm::vec3 diffuse = (kd * glm::max(glm::dot(input.world_normal, light_dir), 0.0f)) * obj_color * light_color;
         // glm::vec3 diffuse = (kd * glm::abs(glm::dot(input.world_normal, light_dir))) * obj_color * light_color;
         glm::vec3 color = ambient + diffuse;
-        return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
-    }
-
-    // interpolate a vertex attribute
-    // @param[in] v1, v2, v3  vertex attributes of the triangle
-    // @param[in] barycentric  barycentric coordinates of the pixel
-    template <typename T>
-    T InterpolateAttr(const T& v1, const T& v2, const T& v3, const glm::vec3& barycentric){
-        return (barycentric.x * v1 + barycentric.y * v2 + barycentric.z * v3)
-                / (barycentric.x + barycentric.y + barycentric.z);
+        return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.7f, 0.0f, 1.0f))};
     }
 
     // interpolate vertex attributes
@@ -95,10 +86,10 @@ public:
 
 public:
     glm::vec3 light_pos;
-    glm::vec3 light_color;
-    float ka;
-    float kd;
-    glm::vec3 obj_color;
+    glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    float ka = 0.2f;
+    float kd = 0.8f;
+    glm::vec3 obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
     Texture* texture = nullptr;
 };
 

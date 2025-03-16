@@ -3,7 +3,10 @@
 #include <vector>
 #include <list>
 #include <glm/glm.hpp>
+#include "utility.h"
 #include "Primitive.h"
+#include "AtomicPixel.h"
+#include "AtomicFragmentList.h"
 
 
 enum BufferVerticalOrder {
@@ -14,6 +17,7 @@ enum BufferVerticalOrder {
 class FrameBuffer {
 private:
     using IndexMapFunc = int (*)(int, int, int, int);
+    using AtomicFragmentList = AtomicFragmentList_CAS;
 public:
     // @param[in] width  width of the frame buffer
     // @param[in] height  height of the frame buffer
@@ -23,9 +27,8 @@ public:
     //                        which means fragment will be covered whenever it is in front of the existing fragment.
     FrameBuffer(int width, int height, BufferVerticalOrder bvo = TOP_DOWN, bool enable_oit = false)
         : width(width), height(height), enable_oit(enable_oit), index_map_func(GetIndexMapFunc(bvo)) {
-        color_buffer = new glm::vec3[width * height];
-        depth_buffer = new float[width * height];
-        if (enable_oit) pplist_buffer = new std::list<Fragment>[width * height];
+        pixel_buffer = new AtomicPixel[width * height];
+        if (enable_oit) pplist_buffer = new AtomicFragmentList[width * height];
         Clear();
     }
 
@@ -34,8 +37,7 @@ public:
     FrameBuffer& operator=(const FrameBuffer&) = delete;
 
     ~FrameBuffer() {
-        delete[] color_buffer;
-        delete[] depth_buffer;
+        delete[] pixel_buffer;
         if (enable_oit) delete[] pplist_buffer;
     }
 
@@ -44,14 +46,12 @@ public:
     void Clear(const glm::vec3& bg_color = glm::vec3(0.0f)) {
         if (pplist_buffer_touched)
             for (int i = 0; i < width * height; i++) {
-                color_buffer[i] = bg_color;
-                depth_buffer[i] = INFINITY;
-                pplist_buffer[i].clear();
+                pixel_buffer[i].Set(bg_color, INFINITY);
+                pplist_buffer[i].Clear();
             }
         else
             for (int i = 0; i < width * height; i++) {
-                color_buffer[i] = bg_color;
-                depth_buffer[i] = INFINITY;
+                pixel_buffer[i].Set(bg_color, INFINITY);
             }
 
         pplist_buffer_touched = false;
@@ -65,23 +65,36 @@ public:
         if (!enable_oit || color.a > 0.9999f)
             CoverFragment(color, depth, x, y);
         else
-            InsertFragment(color, depth, x, y);
+            InsertFragmentSorted(color, depth, x, y);
     }
 
     // cover the fragment at (x, y) with the given color and depth
     void CoverFragment(const glm::vec4& color, float depth, int x, int y) {
         int idx = index_map_func(width, height, x, y);
-        color_buffer[idx] = glm::vec3(color);
-        depth_buffer[idx] = depth;
+        // pixel_buffer[idx].color = glm::vec3(color);
+        // pixel_buffer[idx].depth = depth;
+        pixel_buffer[idx].Cover(glm::vec3(color), depth);
     }
 
-    // blend the per-pixel linked list to the color buffer
-    void Blend() {
+    // blend the per-pixel linked list to the color buffer;
+    // meanwhile, clear the per-pixel linked list
+    // @param[in] thread_num  number of threads to blend the per-pixel linked list
+    void Blend(int thread_num = 1) {
         if (pplist_buffer_touched) {
-            for (int i = 0; i < width * height; i++) {
-                BlendPerPixelList(pplist_buffer[i], color_buffer[i], depth_buffer[i]);
-                pplist_buffer[i].clear();
+            if (thread_num == 1) {
+                BlendProcess(0, width * height);
             }
+            else {
+                std::vector<int> split_points = RangeSplit(0, width * height, thread_num);
+                std::vector<std::thread> threads;
+                for (int i = 0; i < thread_num; i++) {
+                    int pplist_begin = split_points[i];
+                    int pplist_end = split_points[i + 1];
+                    threads.emplace_back(&FrameBuffer::BlendProcess, this, pplist_begin, pplist_end);
+                }
+                for (std::thread& thread : threads) thread.join();
+            }
+
             pplist_buffer_touched = false;
         }
     }
@@ -100,62 +113,44 @@ public:
 
     // get color with buffer memory order
     const glm::vec3& GetColorAtIndex(int row, int col) const {
-        return color_buffer[row * width + col];
+        return pixel_buffer[row * width + col].Color();
     }
 
     // get color with buffer memory order
     float GetDepthAtIndex(int row, int col) const {
-        return depth_buffer[row * width + col];
+        return pixel_buffer[row * width + col].Depth();
     }
 
-    // get color with buffer memory order
-    Fragment GetFragmentAtIndex(int row, int col) const {
-        int idx = row * width + col;
-        return Fragment{glm::vec4(color_buffer[idx], 1.0f), depth_buffer[idx]};
-    }
-
-    const glm::vec3* GetColorBuffer() const {
-        return color_buffer;
-    }
-
-    // get color with coordinate in clipping space ( (0, 0) is at the left-bottom corner )
-    glm::vec3& ColorAtCoord(int x, int y) {
-        return color_buffer[index_map_func(width, height, x, y)];
+    const glm::vec4* GetColorBuffer() const {
+        return reinterpret_cast<const glm::vec4*>(pixel_buffer);
     }
 
     // get color with coordinate in clipping space ( (0, 0) is at the left-bottom corner )
     const glm::vec3& ColorAtCoord(int x, int y) const {
-        return color_buffer[index_map_func(width, height, x, y)];
-    }
-
-    // get depth with coordinate in clipping space ( (0, 0) is at the left-bottom corner )
-    float& DepthAtCoord(int x, int y) {
-        return depth_buffer[index_map_func(width, height, x, y)];
+        return pixel_buffer[index_map_func(width, height, x, y)].Color();
     }
 
     // get depth with coordinate in clipping space ( (0, 0) is at the left-bottom corner )
     const float& DepthAtCoord(int x, int y) const {
-        return depth_buffer[index_map_func(width, height, x, y)];
+        return pixel_buffer[index_map_func(width, height, x, y)].Depth();
     }
 
     // get fragment with coordinate in clipping space ( (0, 0) is at the left-bottom corner )
     Fragment FragmentAtCoord(int x, int y) const {
         int idx = index_map_func(width, height, x, y);
-        return Fragment{glm::vec4(color_buffer[idx], 1.0f), depth_buffer[idx]};
+        return Fragment{glm::vec4(pixel_buffer[idx].Color(), 1.0f), pixel_buffer[idx].Depth()};
     }
 
 private:
     // insert a fragment to the per-pixel linked list by depth descending order
-    void InsertFragment(const glm::vec4& color, float depth, int x, int y) {
-        InsertFragment(Fragment{color, depth}, x, y);
+    void InsertFragmentSorted(const glm::vec4& color, float depth, int x, int y) {
+        InsertFragmentSorted(Fragment{color, depth}, x, y);
     }
 
     // insert a fragment to the per-pixel linked list by depth descending order
-    void InsertFragment(const Fragment& fragment, int x, int y) {
+    void InsertFragmentSorted(const Fragment& fragment, int x, int y) {
         auto& pplist = pplist_buffer[index_map_func(width, height, x, y)];
-        auto iter = pplist.begin();
-        while (iter != pplist.end() && iter->depth > fragment.depth) ++iter;
-        pplist.insert(iter, fragment);
+        pplist.InsertSorted(fragment, x, y);
         pplist_buffer_touched = true;
     }
 
@@ -174,25 +169,24 @@ private:
         }
     }
 
-    // blend the per-pixel linked list to `base_color`
-    static void BlendPerPixelList(const std::list<Fragment>& pplist, glm::vec3& base_color, float base_depth) {
-        // skip fragments with depth larger than `base_depth`
-        auto iter = pplist.begin();
-        while (iter != pplist.end() && iter->depth > base_depth) ++iter;
-        // blend color
-        for (; iter != pplist.end(); ++iter)
-            base_color = base_color * (1.0f - iter->color.a) + iter->color.a * glm::vec3(iter->color);
+    // blend the per-pixel linked list to `base_color`, given the range of y
+    // @param[in] pplist_begin  index of the first element in the per-pixel linked list
+    // @param[in] pplist_end  index AFTER the last element in the per-pixel linked list
+    void BlendProcess(int pplist_begin, int pplist_end) {
+        for (int i = pplist_begin; i < pplist_end; i++) {
+            pplist_buffer[i].Blend(pixel_buffer[i].Color(), pixel_buffer[i].Depth());
+            pplist_buffer[i].Clear();
+        }
     }
 
 protected:
     const int width;
     const int height;
-    const IndexMapFunc index_map_func;
     const bool enable_oit;
+    const IndexMapFunc index_map_func;
 
-    glm::vec3* color_buffer;
-    float* depth_buffer;
-    std::list<Fragment>* pplist_buffer; // per-pixel linked list
-    bool pplist_buffer_touched = false; // whether the pplist buffer has been touched
+    AtomicPixel* pixel_buffer; // per-pixel buffer
+    AtomicFragmentList* pplist_buffer; // per-pixel linked list
+    bool pplist_buffer_touched = false; // whether the pplist buffer has been touched since last clear
 };
 

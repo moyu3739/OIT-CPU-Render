@@ -6,6 +6,7 @@
 #include "Displayer.h"
 #include "FrameBuffer.h"
 #include "Timer.h"
+#include <atomic>
 
 
 void CircularRender(Application& app) {
@@ -15,12 +16,16 @@ void CircularRender(Application& app) {
     const float Y = 1.0f;
 
     Timer tm;
-    tm.StartTimer();
+    float total_clear_time = 0.0f;
+    float total_render_time = 0.0f;
+    float total_load_time = 0.0f;
+    float total_show_time = 0.0f;
+
     float last_frame = 0.0f;
     int frame_count = 0;
-    while(1){
-        app.pipeline_manager.ClearFrameBuffer();
 
+    tm.StartTimer();
+    while(1){
         float t = tm.ReadTimer();
 
         float r = 2 * 3.14159 * t / T;
@@ -28,21 +33,29 @@ void CircularRender(Application& app) {
         // float s = 1.0f + 0.3f * sin(r);
         app.vshaders[0]->model = app.GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.5f);
 
+        // clear the frame buffer
+        float start_clear = tm.ReadTimer();
+        app.pipeline_manager.ClearFrameBuffer(glm::vec3(1.0f));
+        float duration_clear = tm.ReadTimer() - start_clear;
+        total_clear_time += duration_clear;
 
         // app.Render();
 
+        // render
         float start_render = tm.ReadTimer();
-        app.pipeline_manager.Render();
+        app.pipeline_manager.Render(2, 2);
         float duration_render = tm.ReadTimer() - start_render;
-
+        total_render_time += duration_render;
+        // load buffer
         float start_load = tm.ReadTimer();
         app.displayer.LoadFromFrameBuffer(app.pipeline_manager.GetFrameBuffer());
         float duration_load = tm.ReadTimer() - start_load;
-
+        total_load_time += duration_load;
+        // show
         float start_show = tm.ReadTimer();
         app.displayer.Show();
         float duration_show = tm.ReadTimer() - start_show;
-
+        total_show_time += duration_show;
 
         // 计算帧率
         frame_count++;
@@ -51,11 +64,16 @@ void CircularRender(Application& app) {
         last_frame = now;
 
         system("cls"); // 清空缓冲区
-        printf("Render:\t %.4f ms\n", duration_render * 1000);
-        printf("Load buffer:\t%.4f ms\n", duration_load * 1000);
-        printf("Show:\t%.4f ms\n", duration_show * 1000);
-        printf("FPS:\t%.1f fps\n", 1.0f / duration_frame);
-        printf("average FPS:\t%.1f fps\n", frame_count / now);
+        printf("Clear time:\t%.2f ms\n", duration_clear * 1000);
+        printf("Render time:\t %.2f ms\n", duration_render * 1000);
+        printf("Load time:\t%.2f ms\n", duration_load * 1000);
+        printf("Show time:\t%.2f ms\n", duration_show * 1000);
+        printf("FPS:\t%.2f fps\n", 1.0f / duration_frame);
+        printf("Average clear time:\t%.0f ms\n", total_clear_time * 1000 / frame_count);
+        printf("Average render time:\t%.0f ms\n", total_render_time * 1000 / frame_count);
+        printf("Average load time:\t%.0f ms\n", total_load_time * 1000 / frame_count);
+        printf("Average show time:\t%.0f ms\n", total_show_time * 1000 / frame_count);
+        printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
 }
 
@@ -133,12 +151,13 @@ void CircularRenderCustom(Application& app) {
 
 void RenderFrame(Application& app) {
     app.InitPipeline();
+    app.pipeline_manager.ClearFrameBuffer(glm::vec3(1.0f));
     app.Render(0);
 }
 
 
 int main(){
-    Application app(500, 700);
+    Application app(600, 900);
 
     // app.LoadModel("Ankila", "asset/obj/Ankila.obj", "asset/texture/Ankila.png");
     app.LoadModel("Babala hair", "asset/obj/Babala/hair.obj", "asset/texture/Babala/hair.png");
@@ -148,8 +167,8 @@ int main(){
     app.LoadVertexBuffer();
 
     // RenderFrame(app);
-    // CircularRender(app);
-    CircularRenderCustom(app);
+    CircularRender(app);
+    // CircularRenderCustom(app);
     
     
     return 0;

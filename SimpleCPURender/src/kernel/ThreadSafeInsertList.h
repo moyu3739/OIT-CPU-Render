@@ -1,6 +1,7 @@
 #include <atomic>
 
 
+
 template <typename T>
 struct ThreadSafeInsertListNode{
     T data;
@@ -35,6 +36,11 @@ public:
         T& operator*() const {
             return ptr->data;
         }
+
+        // 成员访问操作符
+        T* operator->() const {
+            return &(ptr->data);
+        }
     
         // 前向迭代操作符
         Iterator& operator++() {
@@ -67,7 +73,7 @@ public:
 //   List
 ///////////////////////////////////////////////////////////////////////////////////
 public:
-    ThreadSafeInsertList(): head(nullptr) {}
+    // ThreadSafeInsertList(): head(nullptr) {}
 
     ThreadSafeInsertList(const T& guard){
         head.store(CreateNode(guard), std::memory_order_relaxed);
@@ -105,12 +111,16 @@ public:
     }
 
     void Clear() {
-        Node* curr = head.load(std::memory_order_relaxed);
+        // skip the guard node
+        Node* curr = head.load(std::memory_order_relaxed)->next.load(std::memory_order_relaxed);
+        // delete all nodes
         while (curr != nullptr) {
             Node* next = curr->next.load(std::memory_order_relaxed);
             DestroyNode(curr);
             curr = next;
         }
+        // keep the guard node
+        head.load(std::memory_order_relaxed)->next.store(nullptr, std::memory_order_relaxed);
     }
 
     // 获取起始迭代器
@@ -133,6 +143,9 @@ private:
         delete node;
     }
 
+    // @brief to insert a new node after `prev_node`
+    // @param[in] prev_node: the previous node
+    // @param[in] val: the value of the new node
     void InsertAt(Node* prev_node, const T& val){
         Node* new_node = CreateNode(val);
 
@@ -165,7 +178,6 @@ private:
     // @return  true if the new node is inserted successfully, false otherwise
     bool TryInsertAt(Node* prev_node, Node* post_node, const T& val){
         Node* new_node = CreateNode(val);
-        // Node* curr_next = prev_node->next.load(std::memory_order_acquire);
         new_node->next.store(post_node, std::memory_order_relaxed);
         if (prev_node->next.compare_exchange_strong(
             post_node, new_node,
@@ -185,7 +197,6 @@ private:
     // @return  true if the new node is inserted successfully, false otherwise
     bool TryInsertHead(Node* curr_head, const T& val){
         Node* new_node = CreateNode(val);
-        // Node* curr_head = head.load(std::memory_order_acquire);
         new_node->next.store(curr_head, std::memory_order_relaxed);
         if (head.compare_exchange_strong(
             curr_head, new_node,

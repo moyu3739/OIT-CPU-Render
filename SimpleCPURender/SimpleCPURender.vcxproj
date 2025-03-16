@@ -151,6 +151,10 @@
     <ClCompile Include="src\usecase\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\kernel\AtomicFragmentList.h" />
+    <ClInclude Include="src\kernel\AtomicPixel.h" />
+    <ClInclude Include="src\kernel\ThreadSafeInsertList.h" />
+    <ClInclude Include="src\usecase\AnimeStyleShader.h" />
     <ClInclude Include="src\usecase\Application.h" />
     <ClInclude Include="src\kernel\Displayer.h" />
     <ClInclude Include="src\kernel\FrameBuffer.h" />

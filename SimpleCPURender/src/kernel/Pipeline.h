@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <thread>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include "utility.h"
@@ -20,7 +21,7 @@ public:
     // render the pipeline
     // @param[in] frame_buffer  frame buffer
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
-    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false) = 0;
+    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false, int thread_num = 1) = 0;
 };
 
 
@@ -54,12 +55,50 @@ public:
     // render the pipeline
     // @param[in] frame_buffer  frame buffer
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
-    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false) {
+    // @param[in] thread_num  number of threads to render the pipeline
+    virtual void Render(FrameBuffer* frame_buffer, bool use_oit = false, int thread_num = 1) override {
         assert(vertex_buffer->size() % 3 == 0);
+
+        // if single thread, do it directly
+        if (thread_num == 1) {
+            if (use_oit) RenderProcess<true>(0, vertex_buffer->size(), frame_buffer);
+            else RenderProcess<false>(0, vertex_buffer->size(), frame_buffer);
+            return;
+        }
+
+        int f_num = vertex_buffer->size() / 3;
+        std::vector<int> split_points = RangeSplit(0, f_num, thread_num);
+        std::vector<std::thread> threads;
+        if (use_oit) { // use OIT
+            for (int i = 0; i < thread_num; i++){
+                int v_begin = split_points[i] * 3;
+                int v_end = split_points[i + 1] * 3;
+                threads.emplace_back(&Pipeline::RenderProcess<true>, this, v_begin, v_end, frame_buffer);
+            }
+        }
+        else { // not use OIT
+            for (int i = 0; i < thread_num; i++){
+                int v_begin = split_points[i] * 3;
+                int v_end = split_points[i + 1] * 3;
+                threads.emplace_back(&Pipeline::RenderProcess<false>, this, v_begin, v_end, frame_buffer);
+            }
+        }
+
+        for (std::thread& thread: threads) thread.join();
+    }
+
+private:
+    // render the pipeline, given the range of vertices
+    // @param[in] v_begin  the index of the first vertex
+    // @param[in] v_end  the index AFTER the last vertex
+    // @param[in] frame_buffer  frame buffer
+    template <bool use_oit = false>
+    void RenderProcess(int v_begin, int v_end, FrameBuffer* frame_buffer) {
+        assert((v_end - v_begin) % 3 == 0);
         int width = frame_buffer->GetWidth();
         int height = frame_buffer->GetHeight();
 
-        for (int i = 0; i < vertex_buffer->size(); i += 3){
+        for (int i = v_begin; i < v_end; i += 3){
             const typename VS::Input& vs_input_v1 = vertex_buffer->at(i);
             const typename VS::Input& vs_input_v2 = vertex_buffer->at(i + 1);
             const typename VS::Input& vs_input_v3 = vertex_buffer->at(i + 2);
@@ -129,7 +168,7 @@ public:
                         // call fragment-shader
                         typename FS::Output fs_output = fragment_shader->Call(fs_input);
     
-                        if (use_oit) frame_buffer->HandleNewFragment(fs_output.__color__, screen_depth, x, y);
+                        if constexpr (use_oit) frame_buffer->HandleNewFragment(fs_output.__color__, screen_depth, x, y);
                         else frame_buffer->CoverFragment(fs_output.__color__, screen_depth, x, y);
                     }
                 }

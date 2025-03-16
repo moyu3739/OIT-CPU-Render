@@ -30,7 +30,7 @@ public:
 
     void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) {
         LoadFromFrameBuffer8UC3(frame_buffer);
-        // LoadFromFrameBuffer32FC3(frame_buffer);
+        // LoadFromFrameBuffer32FC4(frame_buffer);
     }
 
     void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer){
@@ -50,9 +50,9 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer32FC3(const FrameBuffer* frame_buffer){
-        front_buffer = cv::Mat(frame_buffer->GetHeight(), frame_buffer->GetWidth(), CV_32FC3,
-                                const_cast<glm::vec3*>(frame_buffer->GetColorBuffer()));
+    void LoadFromFrameBuffer32FC4(const FrameBuffer* frame_buffer){
+        front_buffer = cv::Mat(frame_buffer->GetHeight(), frame_buffer->GetWidth(), CV_32FC4,
+                                const_cast<glm::vec4*>(frame_buffer->GetColorBuffer()));
     }
 
     void Show(int delay = 1){

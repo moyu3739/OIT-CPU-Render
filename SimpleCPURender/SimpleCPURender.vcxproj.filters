@@ -65,5 +65,17 @@
     <ClInclude Include="src\kernel\FrameBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\usecase\AnimeStyleShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\AtomicPixel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\AtomicFragmentList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\ThreadSafeInsertList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@
 #include "utility.h"
 #include "Primitive.h"
 #include "ItensityShader.h"
+#include "AnimeStyleShader.h"
 #include "Texture.h"
 #include "ImageTexture.h"
 #include "Pipeline.h"
@@ -26,9 +27,12 @@ struct Object {
     Texture* texture = nullptr;
 };
 
+using MyVertexShader   = AnimeStyleVertexShader;
+using MyFragmentShader = AnimeStyleFragmentShader;
+using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
+
 
 class Application{
-    using MyPipeline = Pipeline<ItensityVertexShader, ItensityFragmentShader>;
 public:
     Application(int width, int height)
         : width(width), height(height), pipeline_manager(width, height, TOP_DOWN) {}
@@ -51,8 +55,8 @@ public:
 
     MyPipeline* InitPipelineCustom();
 
-    void Render(int delay = 1) {
-        pipeline_manager.Render();
+    void Render(int delay = 1, int render_thread_num = 1, int blend_thread_num = 1) {
+        pipeline_manager.Render(render_thread_num, blend_thread_num);
         displayer.LoadFromFrameBuffer(pipeline_manager.GetFrameBuffer());
         displayer.Show(delay);
     }
@@ -113,11 +117,11 @@ public:
     int width;
     int height;
     std::unordered_map<std::string, Object> models; // <model_name, model>
-    std::unordered_map<std::string, std::vector<ItensityVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
+    std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
     PipelineManager pipeline_manager;
     Displayer displayer;
 
-    std::vector<ItensityVertexShader*> vshaders;
-    std::vector<ItensityFragmentShader*> fshaders;
+    std::vector<MyVertexShader*> vshaders;
+    std::vector<MyFragmentShader*> fshaders;
 };
 

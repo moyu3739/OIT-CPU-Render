@@ -60,10 +60,12 @@ public:
     }
 
     // render all pipelines
-    void Render() {
-        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false);
-        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true);
-        frame_buffer->Blend();
+    // @param[in] render_thread_num  number of threads to render the pipelines
+    // @param[in] blend_thread_num  number of threads to blend the frame buffer
+    void Render(int render_thread_num = 1, int blend_thread_num = 1) {
+        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false, render_thread_num);
+        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true, render_thread_num);
+        frame_buffer->Blend(blend_thread_num);
     }
 
     const FrameBuffer* GetFrameBuffer() const {

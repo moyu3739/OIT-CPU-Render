@@ -86,9 +86,9 @@ void Application::LoadVertexBuffer(){
         const std::string& model_name = model.first;
         const Object& obj = model.second;
 
-        vertex_buffers[model_name] = std::vector<ItensityVertexShader::Input>();
+        vertex_buffers[model_name] = std::vector<MyVertexShader::Input>();
         for (const Vertex& vertex: obj.vertices){ // for each vertex in the model
-            ItensityVertexShader::Input vs_input;
+            MyVertexShader::Input vs_input;
             vs_input.model_pos = vertex.position;
             vs_input.model_normal = vertex.normal;
             vs_input.texcoord = vertex.texcoord;
@@ -99,7 +99,7 @@ void Application::LoadVertexBuffer(){
 
 void Application::InitPipeline(){
     //////// set vertex-shader parameters
-    auto vshader = new ItensityVertexShader;
+    auto vshader = new MyVertexShader;
     vshaders.emplace_back(vshader);
 
     // initialize model transform
@@ -114,14 +114,17 @@ void Application::InitPipeline(){
     const glm::vec3 up(0.0f, 1.0f, 0.0f); // `up` vector of the camera
     vshader->view = GetViewTransform(eye, target, up);
 
-    // initialize projection transform
+    // initialize perspective projection transform
+    glm::vec3 light_pos(0.0f, 0.0f, 10.0f);
     constexpr float fovy = glm::radians(60.0f); // field of view
     const float aspect = 1.0f * width / height; // aspect of the window (width / height)
     const float znear = 0.01f; // near plane for clipping
     const float zfar = 100.0f; // far plane for clipping
     vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
 
-    // const float orth_width = 15.0f;
+    // initialize orthographic projection transform
+    // glm::vec3 light_pos(0.0f, 0.0f, 10000.0f);
+    // const float orth_width = 7.5f;
     // const float orth_height = orth_width / width * height;
     // const float znear = 0.1f; // near plane for clipping
     // const float zfar = 100.0f; // far plane for clipping
@@ -130,18 +133,13 @@ void Application::InitPipeline(){
     for (const auto& nvb: vertex_buffers) {
         const std::string& model_name = nvb.first;
         const Object& obj = models[model_name];
-        const std::vector<ItensityVertexShader::Input>& vertex_buffer = nvb.second;
+        const std::vector<MyVertexShader::Input>& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
-        auto fshader = new ItensityFragmentShader;
+        auto fshader = new MyFragmentShader;
         fshaders.emplace_back(fshader);
 
-        fshader->light_pos = glm::vec3(0.0f, 50.0f, 100.0f);
-        fshader->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-        fshader->ka = 0.1f;
-        fshader->kd = 0.8f;
-        fshader->obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
-        // fshader->texture = new CheckerTexture(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f), 16.0f);
+        fshader->light_pos = light_pos;
         fshader->texture = obj.texture;
         
         //////// load shaders
@@ -149,9 +147,9 @@ void Application::InitPipeline(){
     }
 }
 
-Application::MyPipeline* Application::InitPipelineCustom(){
+MyPipeline* Application::InitPipelineCustom(){
     //////// set vertex-shader parameters
-    auto vshader = new ItensityVertexShader;
+    auto vshader = new MyVertexShader;
     vshaders.emplace_back(vshader);
 
     // initialize model transform
@@ -180,15 +178,14 @@ Application::MyPipeline* Application::InitPipelineCustom(){
     // vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
 
     //////// set fragment-shader parameters
-    auto fshader = new ItensityFragmentShader;
+    auto fshader = new MyFragmentShader;
     fshaders.emplace_back(fshader);
 
     fshader->light_pos = glm::vec3(0.0f, 50.0f, 100.0f);
     fshader->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-    fshader->ka = 0.1f;
-    fshader->kd = 0.8f;
-    fshader->obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
-    // fshader->texture = new CheckerTexture(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 1.0f, 1.0f), 16.0f);
+    // fshader->ka = 0.1f;
+    // fshader->kd = 0.8f;
+    // fshader->obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
     
     //////// load shaders
     return new MyPipeline(vshader, fshader);
