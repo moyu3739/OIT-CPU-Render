@@ -165,6 +165,7 @@ MyPipeline* Application::InitPipelineCustom(){
     vshader->view = GetViewTransform(eye, target, up);
 
     // initialize projection transform
+    glm::vec3 light_pos(0.0f, 0.0f, 10.0f);
     constexpr float fovy = glm::radians(60.0f); // field of view
     const float aspect = 1.0f * width / height; // aspect of the window (width / height)
     const float znear = 0.01f; // near plane for clipping
@@ -172,6 +173,7 @@ MyPipeline* Application::InitPipelineCustom(){
     vshader->projection = GetPerspectiveProjectionTransform(fovy, aspect, znear, zfar);
 
     // const float orth_width = 15.0f;
+    // glm::vec3 light_pos(0.0f, 0.0f, 10000.0f);
     // const float orth_height = orth_width / width * height;
     // const float znear = 0.1f; // near plane for clipping
     // const float zfar = 100.0f; // far plane for clipping
@@ -181,11 +183,8 @@ MyPipeline* Application::InitPipelineCustom(){
     auto fshader = new MyFragmentShader;
     fshaders.emplace_back(fshader);
 
-    fshader->light_pos = glm::vec3(0.0f, 50.0f, 100.0f);
+    fshader->light_pos = light_pos;
     fshader->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-    // fshader->ka = 0.1f;
-    // fshader->kd = 0.8f;
-    // fshader->obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
     
     //////// load shaders
     return new MyPipeline(vshader, fshader);

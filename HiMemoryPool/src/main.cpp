@@ -5,9 +5,9 @@
 
 
 const int block_size = 4096;
-using MemoryPool = _MemoryPool<block_size>;
+using MemoryPool = MemoryPool<block_size>;
 template <class T>
-using Allocator = _Allocator<block_size, T>;
+using Allocator = Allocator<block_size, T>;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

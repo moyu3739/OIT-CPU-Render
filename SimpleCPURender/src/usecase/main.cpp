@@ -43,7 +43,7 @@ void CircularRender(Application& app) {
 
         // render
         float start_render = tm.ReadTimer();
-        app.pipeline_manager.Render(2, 2);
+        app.pipeline_manager.Render(8, 8);
         float duration_render = tm.ReadTimer() - start_render;
         total_render_time += duration_render;
         // load buffer
@@ -79,18 +79,26 @@ void CircularRender(Application& app) {
 
 void CircularRenderCustom(Application& app) {
     auto pipeline = app.InitPipelineCustom();
-    FrameBuffer frame_buffer(app.width, app.height, TOP_DOWN, true);
+    FrameBuffer frame_buffer(app.width, app.height, true);
+
+    const int render_thread_num = 8;
+    const int blend_thread_num  = 8;
 
     const float T = 3.0f;
     const float Y = 1.0f;
 
     Timer tm;
-    tm.StartTimer();
+    float total_clear_time = 0.0f;
+    float total_render_time = 0.0f;
+    float totla_blend_time = 0.0f;
+    float total_load_time = 0.0f;
+    float total_show_time = 0.0f;
+
     float last_frame = 0.0f;
     int frame_count = 0;
-    while(1){
-        frame_buffer.Clear(glm::vec3(1.0f));
 
+    tm.StartTimer();
+    while(1){
         float t = tm.ReadTimer();
 
         float r = 2 * 3.14159 * t / T;
@@ -106,33 +114,39 @@ void CircularRenderCustom(Application& app) {
         // app.pipeline.fragment_shader->light_pos.y = 100.f;
         // app.pipeline.fragment_shader->light_pos.z = 100.0f * cos(4 * r);
 
-
+        // clear the frame buffer
+        float start_clear = tm.ReadTimer();
+        frame_buffer.Clear(glm::vec3(1.0f));
+        float duration_clear = tm.ReadTimer() - start_clear;
+        total_clear_time += duration_clear;
+        // render
         float start_render = tm.ReadTimer();
-
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
         app.fshaders[0]->texture = app.models["Babala hair"].texture;
-        pipeline->Render(&frame_buffer, true);
-
+        pipeline->Render(&frame_buffer, true, render_thread_num);
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
         app.fshaders[0]->texture = app.models["Babala body"].texture;
-        pipeline->Render(&frame_buffer, true);
-
+        pipeline->Render(&frame_buffer, true, render_thread_num);
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
         app.fshaders[0]->texture = app.models["Babala face"].texture;
-        pipeline->Render(&frame_buffer, true);
-
-        frame_buffer.Blend();
-
+        pipeline->Render(&frame_buffer, true, render_thread_num);
         float duration_render = tm.ReadTimer() - start_render;
-
-
+        total_render_time += duration_render;
+        // blend
+        float start_blend = tm.ReadTimer();
+        frame_buffer.Blend(blend_thread_num);
+        float duration_blend = tm.ReadTimer() - start_blend;
+        totla_blend_time += duration_blend;
+        // load buffer
         float start_load = tm.ReadTimer();
         app.displayer.LoadFromFrameBuffer(&frame_buffer);
         float duration_load = tm.ReadTimer() - start_load;
-
+        total_load_time += duration_load;
+        // show
         float start_show = tm.ReadTimer();
         app.displayer.Show();
         float duration_show = tm.ReadTimer() - start_show;
+        total_show_time += duration_show;
 
         // 计算帧率
         frame_count++;
@@ -141,18 +155,25 @@ void CircularRenderCustom(Application& app) {
         last_frame = now;
 
         system("cls"); // 清空缓冲区
-        printf("Render:\t %.4f ms\n", duration_render * 1000);
-        printf("Load buffer:\t%.4f ms\n", duration_load * 1000);
-        printf("Show:\t%.4f ms\n", duration_show * 1000);
-        printf("FPS:\t%.1f fps\n", 1.0f / duration_frame);
-        printf("average FPS:\t%.1f fps\n", frame_count / now);
+        printf("Clear time:\t%.2f ms\n", duration_clear * 1000);
+        printf("Render time:\t%.2f ms\n", duration_render * 1000);
+        printf("Blend time:\t%.2f ms\n", duration_blend * 1000);
+        printf("Load time:\t%.2f ms\n", duration_load * 1000);
+        printf("Show time:\t%.2f ms\n", duration_show * 1000);
+        printf("FPS:\t\t%.2f fps\n", 1.0f / duration_frame);
+        printf("Average clear time:\t%.0f ms\n", total_clear_time * 1000 / frame_count);
+        printf("Average render time:\t%.0f ms\n", total_render_time * 1000 / frame_count);
+        printf("Average blend time:\t%.0f ms\n", totla_blend_time * 1000 / frame_count);
+        printf("Average load time:\t%.0f ms\n", total_load_time * 1000 / frame_count);
+        printf("Average show time:\t%.0f ms\n", total_show_time * 1000 / frame_count);
+        printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
 }
 
 void RenderFrame(Application& app) {
     app.InitPipeline();
     app.pipeline_manager.ClearFrameBuffer(glm::vec3(1.0f));
-    app.Render(0);
+    app.Render(0, 8, 8);
 }
 
 
@@ -167,8 +188,8 @@ int main(){
     app.LoadVertexBuffer();
 
     // RenderFrame(app);
-    CircularRender(app);
-    // CircularRenderCustom(app);
+    // CircularRender(app);
+    CircularRenderCustom(app);
     
     
     return 0;

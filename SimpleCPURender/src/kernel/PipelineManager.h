@@ -9,8 +9,8 @@
 
 class PipelineManager {
 public:
-    PipelineManager(int width, int height, BufferVerticalOrder bvo) {
-        frame_buffer = new FrameBuffer(width, height, bvo, true);
+    PipelineManager(int width, int height) {
+        frame_buffer = new FrameBuffer(width, height, true);
     }
 
     ~PipelineManager() {

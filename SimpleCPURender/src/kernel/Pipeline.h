@@ -61,8 +61,8 @@ public:
 
         // if single thread, do it directly
         if (thread_num == 1) {
-            if (use_oit) RenderProcess<true>(0, vertex_buffer->size(), frame_buffer);
-            else RenderProcess<false>(0, vertex_buffer->size(), frame_buffer);
+            if (use_oit) RenderProcess<PerPixelListBuffer_CAS::Allocator, true>(0, vertex_buffer->size(), frame_buffer, frame_buffer->GetAllocator(0));
+            else RenderProcess<PerPixelListBuffer_CAS::Allocator, false>(0, vertex_buffer->size(), frame_buffer, frame_buffer->GetAllocator(0));
             return;
         }
 
@@ -73,14 +73,14 @@ public:
             for (int i = 0; i < thread_num; i++){
                 int v_begin = split_points[i] * 3;
                 int v_end = split_points[i + 1] * 3;
-                threads.emplace_back(&Pipeline::RenderProcess<true>, this, v_begin, v_end, frame_buffer);
+                threads.emplace_back(&Pipeline::RenderProcess<PerPixelListBuffer_CAS::Allocator, true>, this, v_begin, v_end, frame_buffer, frame_buffer->GetAllocator(i));
             }
         }
         else { // not use OIT
             for (int i = 0; i < thread_num; i++){
                 int v_begin = split_points[i] * 3;
                 int v_end = split_points[i + 1] * 3;
-                threads.emplace_back(&Pipeline::RenderProcess<false>, this, v_begin, v_end, frame_buffer);
+                threads.emplace_back(&Pipeline::RenderProcess<PerPixelListBuffer_CAS::Allocator, false>, this, v_begin, v_end, frame_buffer, frame_buffer->GetAllocator(i));
             }
         }
 
@@ -92,8 +92,8 @@ private:
     // @param[in] v_begin  the index of the first vertex
     // @param[in] v_end  the index AFTER the last vertex
     // @param[in] frame_buffer  frame buffer
-    template <bool use_oit = false>
-    void RenderProcess(int v_begin, int v_end, FrameBuffer* frame_buffer) {
+    template <class Allocator, bool use_oit = false>
+    void RenderProcess(int v_begin, int v_end, FrameBuffer* frame_buffer, Allocator* allocator) {
         assert((v_end - v_begin) % 3 == 0);
         int width = frame_buffer->GetWidth();
         int height = frame_buffer->GetHeight();
@@ -164,12 +164,14 @@ private:
                     }
 
                     // write color to frame buffer
-                    if (frame_buffer->DepthTest(screen_depth, x, y)){ // get max depth, note that z-axis points out of the screen
+                    if (frame_buffer->DepthTestAt(screen_depth, x, y)){ // get max depth, note that z-axis points out of the screen
                         // call fragment-shader
                         typename FS::Output fs_output = fragment_shader->Call(fs_input);
     
-                        if constexpr (use_oit) frame_buffer->HandleNewFragment(fs_output.__color__, screen_depth, x, y);
-                        else frame_buffer->CoverFragment(fs_output.__color__, screen_depth, x, y);
+                        if constexpr (use_oit)
+                            frame_buffer->HandleNewFragment(fs_output.__color__, screen_depth, x, y, allocator);
+                        else
+                            frame_buffer->CoverFragment(fs_output.__color__, screen_depth, x, y);
                     }
                 }
             }

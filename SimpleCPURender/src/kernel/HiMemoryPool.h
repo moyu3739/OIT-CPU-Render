@@ -3,6 +3,7 @@
 #include <iostream>
 #include <list>
 #include <exception>
+#include <mutex>
 #include "Block.h"
 
 
@@ -25,6 +26,8 @@ public:
 
     // allocate a block
     Block_t* AllocateBlock(){
+        std::lock_guard<std::mutex> lock(mtx);
+
         // double-expand `available_blocks` if no available block
         if (available_blocks.size() == 0) DoubleExpand();
 
@@ -38,6 +41,8 @@ public:
     // deallocate a block
     // @param[in] block  the block to deallocate
     void DeallocateBlock(Block_t* block){
+        std::lock_guard<std::mutex> lock(mtx);
+
         // push `block` to the available list
         available_blocks.emplace_back(block);
 
@@ -64,7 +69,7 @@ private:
 
     // expand the list of available blocks
     // @param[in] n  the number of blocks to expand
-    void Expand(int n){
+    void Expand(int n){        
         for(int i = 0; i < n; i++)
             available_blocks.emplace_back(NewBlock());
         total_blocks += n;
@@ -97,5 +102,5 @@ private:
     int pre_alloc; // the number of blocks to pre-allocate
     int total_blocks = 0; // the total number of blocks (both available and in-use)
     std::list<Block_t*> available_blocks;
-
+    std::mutex mtx;
 };

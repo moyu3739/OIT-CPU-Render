@@ -1,5 +1,5 @@
 #include <atomic>
-
+#include <cassert>
 
 
 template <typename T>
@@ -8,10 +8,15 @@ struct ThreadSafeInsertListNode{
     std::atomic<ThreadSafeInsertListNode<T>*> next;
 
     ThreadSafeInsertListNode(const T& val): data(val), next(nullptr) {}
+
+    void Init(const T& val) {
+        data = val;
+        next.store(nullptr, std::memory_order_relaxed);
+    }
 };
 
 
-template <typename T>
+template <typename T, typename Allocator>
 class ThreadSafeInsertList{
     using Node = ThreadSafeInsertListNode<T>;
 
@@ -73,30 +78,52 @@ public:
 //   List
 ///////////////////////////////////////////////////////////////////////////////////
 public:
-    // ThreadSafeInsertList(): head(nullptr) {}
+    ThreadSafeInsertList(): head(nullptr) {}
 
-    ThreadSafeInsertList(const T& guard){
-        head.store(CreateNode(guard), std::memory_order_relaxed);
-    }
+    // ThreadSafeInsertList(const T& guard, Allocator* allocator): allocator(allocator){
+    //     head.store(CreateNode(guard), std::memory_order_relaxed);
+    // }
 
     ~ThreadSafeInsertList(){
-        Clear();
+        // Clear();
     }
 
     bool IsEmpty() const{
         return head.load(std::memory_order_acquire) == nullptr;
     }
 
-    void InsertAt(Iterator prev_node, const T& val){
-        InsertAt(prev_node.ptr, val);
+    void ResetHead() {
+        head.store(nullptr, std::memory_order_relaxed);
     }
 
-    bool TryInsertAt(Iterator prev, Iterator post, const T& val){
-        return TryInsertAt(prev.ptr, post.ptr, val);
+    void SetAllocator(Allocator* allocator){
+        this->allocator = allocator;
     }
 
-    void InsertHead(const T& val){
-        Node* new_node = CreateNode(val);
+    // @brief  insert a new node after `prev_iter`
+    // @param[in] prev_iter: the previous iterator
+    // @param[in] val: the value of the new node
+    template <class Allocator>
+    void InsertAt(Iterator prev_iter, const T& val, Allocator* allocator){
+        InsertAt(prev_iter.ptr, val, allocator);
+    }
+
+    // @brief  try inserting a new node between `prev_iter` and `post_iter`
+    // @param[in] prev_iter: the previous iterator
+    // @param[in] post_iter: the iterator next to the previous iterator before inserting
+    //                       (used to check satisfying `prev_iter->next == post_iter`)
+    // @param[in] val: the value of the new node
+    // @return  true if the new node is inserted successfully, false otherwise
+    template <class Allocator>
+    bool TryInsertAt(Iterator prev_iter, Iterator post_iter, const T& val, Allocator* allocator){
+        return TryInsertAt(prev_iter.ptr, post_iter.ptr, val, allocator);
+    }
+
+    // @brief  insert a new node at head of the list
+    // @param[in] val: the value of the new node
+    template <class Allocator>
+    void InsertHead(const T& val, Allocator* allocator){
+        Node* new_node = CreateNode(val, allocator);
         Node* curr_head = head.load(std::memory_order_acquire);
         while (true){
             new_node->next.store(curr_head, std::memory_order_relaxed);
@@ -106,21 +133,28 @@ public:
         }
     }
 
-    bool TryInsertHead(Iterator curr_head, const T& val){
-        return TryInsertHead(curr_head.ptr, val);
+    // @brief to insert a new node at the head of the list
+    // @param[in] curr_head: the current head (can be null)
+    // @param[in] val: the value of the new node
+    // @return  true if the new node is inserted successfully, false otherwise
+    template <class Allocator>
+    bool TryInsertHead(Iterator curr_head, const T& val, Allocator* allocator){
+        return TryInsertHead(curr_head.ptr, val, allocator);
     }
 
-    void Clear() {
-        // skip the guard node
-        Node* curr = head.load(std::memory_order_relaxed)->next.load(std::memory_order_relaxed);
+    // @brief  clear all nodes in the list
+    // @note free all nodes in the list, and reset head to nullptr
+    template <class Allocator>
+    void Clear(Allocator* allocator) {
+        Node* curr = head.load(std::memory_order_acquire);
         // delete all nodes
         while (curr != nullptr) {
             Node* next = curr->next.load(std::memory_order_relaxed);
-            DestroyNode(curr);
+            DestroyNode(curr, allocator);
             curr = next;
         }
-        // keep the guard node
-        head.load(std::memory_order_relaxed)->next.store(nullptr, std::memory_order_relaxed);
+        // set head to nullptr
+        head.store(nullptr, std::memory_order_relaxed);
     }
 
     // 获取起始迭代器
@@ -135,19 +169,25 @@ public:
     }
 
 private:
-    Node* CreateNode(const T& val) const {
-        return new Node(val);
+    template <class Allocator>
+    Node* CreateNode(const T& val, Allocator* allocator) const {
+        // return new Node(val);
+        Node* new_node = allocator->Allocate();
+        new_node->Init(val);
+        return new_node;
     }
 
-    void DestroyNode(Node* node) const {
-        delete node;
+    template <class Allocator>
+    void DestroyNode(Node* node, Allocator* allocator) const {
+        allocator->Deallocate(node);
     }
 
     // @brief to insert a new node after `prev_node`
     // @param[in] prev_node: the previous node
     // @param[in] val: the value of the new node
-    void InsertAt(Node* prev_node, const T& val){
-        Node* new_node = CreateNode(val);
+    template <class Allocator>
+    void InsertAt(Node* prev_node, const T& val, Allocator* allocator){
+        Node* new_node = CreateNode(val, allocator, allocator);
 
         // 读取前驱节点的当前 next 指针（带 acquire 语义）
         Node* curr_next = prev_node->next.load(std::memory_order_acquire);
@@ -176,8 +216,9 @@ private:
     //                       (used to check satisfying `prev_node->next == post_node`)
     // @param[in] val: the value of the new node
     // @return  true if the new node is inserted successfully, false otherwise
-    bool TryInsertAt(Node* prev_node, Node* post_node, const T& val){
-        Node* new_node = CreateNode(val);
+    template <class Allocator>
+    bool TryInsertAt(Node* prev_node, Node* post_node, const T& val, Allocator* allocator){
+        Node* new_node = CreateNode(val, allocator);
         new_node->next.store(post_node, std::memory_order_relaxed);
         if (prev_node->next.compare_exchange_strong(
             post_node, new_node,
@@ -186,31 +227,31 @@ private:
             return true;
         }
         else {
-            DestroyNode(new_node);
+            DestroyNode(new_node, allocator);
             return false;
         }
     }
 
     // @brief to insert a new node at the head of the list
-    // @param[in] curr_head: the current head node (used to check satisfying `head == curr_head`)
+    // @param[in] curr_head: the current head node (used to check satisfying `head == curr_head`, can be nullptr)
     // @param[in] val: the value of the new node
     // @return  true if the new node is inserted successfully, false otherwise
-    bool TryInsertHead(Node* curr_head, const T& val){
-        Node* new_node = CreateNode(val);
+    template <class Allocator>
+    bool TryInsertHead(Node* curr_head, const T& val, Allocator* allocator){
+        Node* new_node = CreateNode(val, allocator);
         new_node->next.store(curr_head, std::memory_order_relaxed);
         if (head.compare_exchange_strong(
             curr_head, new_node,
             std::memory_order_release, std::memory_order_acquire
-        )){
+        )) {
             return true;
         }
         else{
-            DestroyNode(new_node);
+            DestroyNode(new_node, allocator);
             return false;
         }
     }
 
 private:
     std::atomic<Node*> head;
-
 };

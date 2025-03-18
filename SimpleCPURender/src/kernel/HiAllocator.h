@@ -6,19 +6,43 @@
 #include "MemoryPool.h"
 
 
+template <class T>
+class TrivialAllocator{
+public:
+    TrivialAllocator() {}
+
+    T* Allocate(){
+        return reinterpret_cast<T*>(malloc(sizeof(T)));
+    }
+
+    void Deallocate(T* ptr){
+        free(ptr);
+    }
+
+    void DeallocateAll() {} // do nothing
+};
+
+
+
 template <int block_size, class T>
-class Allocator{
+class HiAllocator{
     using Block_t = Block<block_size>;
     using MemoryPool_t = MemoryPool<block_size>;
 
 public:
-    Allocator(MemoryPool_t* memory_pool, int pre_alloc){
-        this->memory_pool = memory_pool;
-        FetchBlocks(pre_alloc);
+    HiAllocator() {}
+
+    HiAllocator(MemoryPool_t* memory_pool, int pre_alloc){
+        Init(memory_pool, pre_alloc);
     }
 
-    ~Allocator(){
+    ~HiAllocator(){
         SubmitAll();
+    }
+
+    void Init(MemoryPool_t* memory_pool, int pre_alloc){
+        this->memory_pool = memory_pool;
+        FetchBlocks(pre_alloc);
     }
 
     // allocate memory for an object of type `T`
@@ -74,7 +98,7 @@ private:
     void FetchBlocks(int n){
         for (int i = 0; i < n; i++)
             available_blocks.emplace_back(memory_pool->AllocateBlock());
-        // printf("[Allocator]\tFetch %d blocks (%d / %d)\n", n, available_blocks.size(), available_blocks.size() + in_use_blocks.size());
+        // printf("[HiAllocator]\tFetch %d blocks (%d / %d)\n", n, available_blocks.size(), available_blocks.size() + in_use_blocks.size());
     }
 
     // check if the block is available for allocation
@@ -94,4 +118,33 @@ private:
     MemoryPool_t* memory_pool;
     std::list<Block_t*> available_blocks;
     std::unordered_set<Block_t*> in_use_blocks;
+};
+
+
+template <int block_size, class T>
+class BatchFreeAllocator {
+    using MemoryPool_t = MemoryPool<block_size>;
+
+public:
+    BatchFreeAllocator() {}
+
+    BatchFreeAllocator(MemoryPool_t* memory_pool, int pre_alloc)
+        : allocator(memory_pool, pre_alloc) {}
+
+    void Init(MemoryPool_t* memory_pool, int pre_alloc) {
+        allocator.Init(memory_pool, pre_alloc);
+    }
+
+    T* Allocate() {
+        return allocator.Allocate();
+    }
+
+    void Deallocate(T* ptr) {} // do nothing
+
+    void DeallocateAll() {
+        allocator.DeallocateAll();
+    }
+
+private:
+    HiAllocator<block_size, T> allocator;
 };

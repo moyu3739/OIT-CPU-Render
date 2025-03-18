@@ -105,12 +105,15 @@ public:
     }
 
     void Clear() {
-        Node* curr = head.load(std::memory_order_relaxed);
+        Node* curr = head.load(std::memory_order_acquire);
+        // delete all nodes
         while (curr != nullptr) {
             Node* next = curr->next.load(std::memory_order_relaxed);
             DestroyNode(curr);
             curr = next;
         }
+        // set head to nullptr
+        head.store(nullptr, std::memory_order_relaxed);
     }
 
     // 获取起始迭代器
@@ -165,7 +168,6 @@ private:
     // @return  true if the new node is inserted successfully, false otherwise
     bool TryInsertAt(Node* prev_node, Node* post_node, const T& val){
         Node* new_node = CreateNode(val);
-        // Node* curr_next = prev_node->next.load(std::memory_order_acquire);
         new_node->next.store(post_node, std::memory_order_relaxed);
         if (prev_node->next.compare_exchange_strong(
             post_node, new_node,
@@ -185,7 +187,6 @@ private:
     // @return  true if the new node is inserted successfully, false otherwise
     bool TryInsertHead(Node* curr_head, const T& val){
         Node* new_node = CreateNode(val);
-        // Node* curr_head = head.load(std::memory_order_acquire);
         new_node->next.store(curr_head, std::memory_order_relaxed);
         if (head.compare_exchange_strong(
             curr_head, new_node,

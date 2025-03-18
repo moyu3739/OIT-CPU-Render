@@ -35,7 +35,7 @@ using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
 class Application{
 public:
     Application(int width, int height)
-        : width(width), height(height), pipeline_manager(width, height, TOP_DOWN) {}
+        : width(width), height(height), pipeline_manager(width, height) {}
 
     ~Application() {
         // clear shaders
