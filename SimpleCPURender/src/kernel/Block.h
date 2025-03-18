@@ -50,8 +50,8 @@ public:
     }
 
 public:
-    static const int capacity = size - sizeof(BlockMeta); // the capacity of the block for data storage
-    static const long long mask = ~(size - 1); // mask to get the address of the block, e.g. 0xFFFFFFFFFFFFF000 for 4KB block
+    constexpr static int capacity = size - sizeof(BlockMeta); // the capacity of the block for data storage
+    constexpr static long long mask = ~(size - 1); // mask to get the address of the block, e.g. 0xFFFFFFFFFFFFF000 for 4KB block
     
 public:
     BlockMeta meta;

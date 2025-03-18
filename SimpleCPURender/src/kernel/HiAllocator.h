@@ -3,7 +3,8 @@
 #include <iostream>
 #include <list>
 #include <unordered_set>
-#include "MemoryPool.h"
+#include <cassert>
+#include "HiMemoryPool.h"
 
 
 template <class T>
@@ -26,15 +27,22 @@ public:
 
 template <int block_size, class T>
 class HiAllocator{
+public:
+    constexpr static int block_size = block_size;
     using Block_t = Block<block_size>;
     using MemoryPool_t = MemoryPool<block_size>;
 
 public:
-    HiAllocator() {}
+    HiAllocator() {
+        assert(Block_t::capacity >= sizeof(T)); // make sure the block size is large enough
+    }
 
     HiAllocator(MemoryPool_t* memory_pool, int pre_alloc){
         Init(memory_pool, pre_alloc);
     }
+
+    HiAllocator(const HiAllocator&) = delete;
+    HiAllocator& operator=(const HiAllocator&) = delete;
 
     ~HiAllocator(){
         SubmitAll();
@@ -83,7 +91,7 @@ public:
     // deallocate all blocks forcibly 
     void DeallocateAll(){
         // deallocate the first block in `available_blocks`
-        available_blocks.front()->Reset();
+        if (!available_blocks.empty()) available_blocks.front()->Reset();
 
         // deallocate all in-use blocks
         for (Block_t* block : in_use_blocks){
@@ -108,10 +116,8 @@ private:
 
     // submit all blocks to the memory pool forcibly
     void SubmitAll(){
-        for (Block_t* block : in_use_blocks)
-            memory_pool->DeallocateBlock(block);
-        for (Block_t* block : available_blocks)
-            memory_pool->DeallocateBlock(block);
+        for (Block_t* block : in_use_blocks) memory_pool->DeallocateBlock(block);
+        for (Block_t* block : available_blocks) memory_pool->DeallocateBlock(block);
     }
 
 private:
@@ -121,30 +127,35 @@ private:
 };
 
 
-template <int block_size, class T>
-class BatchFreeAllocator {
-    using MemoryPool_t = MemoryPool<block_size>;
+template <class Allocator>
+class AllocatorGroup {
+    using MemoryPool_t = MemoryPool<Allocator::block_size>;
 
 public:
-    BatchFreeAllocator() {}
-
-    BatchFreeAllocator(MemoryPool_t* memory_pool, int pre_alloc)
-        : allocator(memory_pool, pre_alloc) {}
-
-    void Init(MemoryPool_t* memory_pool, int pre_alloc) {
-        allocator.Init(memory_pool, pre_alloc);
+    AllocatorGroup(int n, int pre_alloc) {
+        memory_pool = new MemoryPool_t(n * pre_alloc);
+        allocators.resize(n);
+        for (int i = 0; i < n; i++) allocators[i] = new Allocator(memory_pool, pre_alloc);
     }
 
-    T* Allocate() {
-        return allocator.Allocate();
+    ~AllocatorGroup() {
+        for (Allocator* allocator: allocators) delete allocator;
+        delete memory_pool;
     }
 
-    void Deallocate(T* ptr) {} // do nothing
+    AllocatorGroup(const AllocatorGroup&) = delete;
+    AllocatorGroup& operator=(const AllocatorGroup&) = delete;
+
+    Allocator* GetAllocator(int idx) {
+        return allocators[idx];
+    }
 
     void DeallocateAll() {
-        allocator.DeallocateAll();
+        for (Allocator* allocator: allocators) allocator->DeallocateAll();
     }
 
 private:
-    HiAllocator<block_size, T> allocator;
+    MemoryPool_t* memory_pool;
+    std::vector<Allocator*> allocators;
 };
+
