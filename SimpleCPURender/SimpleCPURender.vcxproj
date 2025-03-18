@@ -120,7 +120,7 @@
       <AdditionalDependencies>opencv_world4100d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "external\opencv2\x64\vc16\bin\opencv_world4100d.dll" "$(OutDir)" /E /Y</Command>
+      <Command>if not exist "$(OutDir)opencv_world4100d.dll" xcopy "external\opencv2\x64\vc16\bin\opencv_world4100d.dll" "$(OutDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,9 +151,12 @@
     <ClCompile Include="src\usecase\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\kernel\Allocator.h" />
+    <ClInclude Include="src\kernel\Engine.h" />
+    <ClInclude Include="src\kernel\ListAllocator.h" />
+    <ClInclude Include="src\kernel\FrameBufferManager.h" />
+    <ClInclude Include="src\kernel\HiAllocator.h" />
     <ClInclude Include="src\kernel\Block.h" />
-    <ClInclude Include="src\kernel\MemoryPool.h" />
+    <ClInclude Include="src\kernel\HiMemoryPool.h" />
     <ClInclude Include="src\kernel\PerPixelListBuffer.h" />
     <ClInclude Include="src\kernel\PixelBuffer.h" />
     <ClInclude Include="src\kernel\ThreadSafeInsertList.h" />

@@ -7,12 +7,12 @@
 #include "Primitive.h"
 #include "PixelBuffer.h"
 #include "PerPixelListBuffer.h"
+#include "ListAllocator.h"
 
 
 class FrameBuffer {
 private:
     using IndexMapFunc = int (*)(int, int, int, int);
-    using PerPixelListBuffer = PerPixelListBuffer_CAS;
 
 public:
     // @param[in] width  width of the frame buffer
@@ -20,24 +20,19 @@ public:
     // @param[in] enable_oit  whether to enable order-independent transparency;
     //                        if false, the frame buffer will always ignore alpha channel,
     //                        which means fragment will be covered whenever it is in front of the existing fragment.
-    FrameBuffer(int width, int height, bool enable_oit = false)
+    FrameBuffer(int width, int height, int allocator_num, bool enable_oit = false)
         : width(width), height(height), enable_oit(enable_oit) {
         pixel_buffer = new PixelBuffer(width, height);
-        if (enable_oit) pplist_buffer = new PerPixelListBuffer(width, height, 8);
+        if (enable_oit) pplist_buffer = new PerPixelListBuffer(width, height, allocator_num);
         Clear();
     }
 
     FrameBuffer(const FrameBuffer&) = delete;
-
     FrameBuffer& operator=(const FrameBuffer&) = delete;
 
     ~FrameBuffer() {
         delete pixel_buffer;
         if (enable_oit) delete pplist_buffer;
-    }
-
-    auto* GetAllocator(int idx) {
-        return pplist_buffer->GetAllocator(idx);
     }
 
     // clear the frame buffer
@@ -55,16 +50,15 @@ public:
     // depend on whether OIT is enabled and the alpha value of the color,
     // this function may cover the existing fragment or insert the new fragment to the per-pixel linked list
     // @note assume the fragment has passed depth test
-    template <class Allocator>
-    void HandleNewFragment(const glm::vec4& color, float depth, int x, int y, Allocator* allocator) {
+    void HandleNewFragment_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
         if (!enable_oit || color.a > 0.9999f)
-            CoverFragment(color, depth, x, y);
+            CoverFragment_T(color, depth, x, y);
         else
-            InsertFragmentSorted(color, depth, x, y, allocator);
+            InsertFragmentSorted_T(color, depth, x, y, thread_id);
     }
 
     // cover the fragment at (x, y) with the given color and depth
-    void CoverFragment(const glm::vec4& color, float depth, int x, int y) {
+    void CoverFragment_T(const glm::vec4& color, float depth, int x, int y) {
         pixel_buffer->CoverAt_T(glm::vec3(color), depth, x, y);
     }
 
@@ -113,9 +107,8 @@ public:
 
 private:
     // insert a fragment to the per-pixel linked list by depth descending order
-    template <class Allocator>
-    void InsertFragmentSorted(const glm::vec4& color, float depth, int x, int y, Allocator* allocator) {
-        pplist_buffer->InsertSortedAt_T(Fragment{color, depth}, x, y, allocator);
+    void InsertFragmentSorted_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
+        pplist_buffer->InsertSortedAt_T(Fragment{color, depth}, x, y, thread_id);
         pplist_buffer_touched = true;
     }
 
@@ -128,15 +121,13 @@ private:
         }
     }
 
-// protected:
-public:
+private:
     const int width;
     const int height;
     const bool enable_oit;
-    // const IndexMapFunc index_map_func;
 
     PixelBuffer* pixel_buffer; // per-pixel buffer
-    PerPixelListBuffer* pplist_buffer;
+    PerPixelListBuffer* pplist_buffer; // per-pixel linked list buffer
     bool pplist_buffer_touched = false; // whether the pplist buffer has been touched since last clear
 };
 

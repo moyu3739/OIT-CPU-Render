@@ -146,10 +146,12 @@ public:
     AllocatorGroup(const AllocatorGroup&) = delete;
     AllocatorGroup& operator=(const AllocatorGroup&) = delete;
 
+    // get the allocator at index `idx`
     Allocator* GetAllocator(int idx) {
         return allocators[idx];
     }
 
+    // deallocate all blocks forcibly
     void DeallocateAll() {
         for (Allocator* allocator: allocators) allocator->DeallocateAll();
     }

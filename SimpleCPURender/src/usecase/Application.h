@@ -14,6 +14,7 @@
 #include "Pipeline.h"
 #include "PipelineManager.h"
 #include "Displayer.h"
+#include "Engine.h"
 
 
 struct Vertex {
@@ -35,7 +36,7 @@ using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
 class Application{
 public:
     Application(int width, int height)
-        : width(width), height(height), pipeline_manager(width, height) {}
+        : width(width), height(height) {}
 
     ~Application() {
         // clear shaders
@@ -47,19 +48,11 @@ public:
 
     void LoadModel(const std::string& model_name, const std::string& obj_path, const std::string& texture_path = "");
 
-    // void LoadTexture(const std::string& model_name, const std::string& texture_path);
-
     void LoadVertexBuffer();
 
-    void InitPipeline();
+    Engine* InitEngine(int render_thread_num, int blend_thread_num);
 
-    MyPipeline* InitPipelineCustom();
-
-    void Render(int delay = 1, int render_thread_num = 1, int blend_thread_num = 1) {
-        pipeline_manager.Render(render_thread_num, blend_thread_num);
-        displayer.LoadFromFrameBuffer(pipeline_manager.GetFrameBuffer());
-        displayer.Show(delay);
-    }
+    MyPipeline* InitPipeline();
 
     // get model transformation
     // @param[in] translation  translation vector
@@ -118,8 +111,6 @@ public:
     int height;
     std::unordered_map<std::string, Object> models; // <model_name, model>
     std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
-    PipelineManager pipeline_manager;
-    Displayer displayer;
 
     std::vector<MyVertexShader*> vshaders;
     std::vector<MyFragmentShader*> fshaders;

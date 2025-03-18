@@ -97,7 +97,9 @@ void Application::LoadVertexBuffer(){
     }
 }
 
-void Application::InitPipeline(){
+Engine* Application::InitEngine(int render_thread_num, int blend_thread_num){
+    Engine* engine = new Engine(width, height, render_thread_num, blend_thread_num, true);
+
     //////// set vertex-shader parameters
     auto vshader = new MyVertexShader;
     vshaders.emplace_back(vshader);
@@ -143,11 +145,13 @@ void Application::InitPipeline(){
         fshader->texture = obj.texture;
         
         //////// load shaders
-        pipeline_manager.CreatePipeline(vertex_buffer, vshader, fshader, true);
+        engine->pipeline_manager->CreatePipeline(vertex_buffer, vshader, fshader, true);
     }
+
+    return engine;
 }
 
-MyPipeline* Application::InitPipelineCustom(){
+MyPipeline* Application::InitPipeline(){
     //////// set vertex-shader parameters
     auto vshader = new MyVertexShader;
     vshaders.emplace_back(vshader);

@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
+#include <thread>
 #include <opencv2/opencv.hpp>
 #include "Primitive.h"
 #include "FrameBuffer.h"
@@ -11,11 +13,11 @@ class Displayer{
 public:
     Displayer() {}
 
-    void LoadFromImageFile(const std::string& img_path){
+    void LoadFromImageFile(const std::string& img_path) {
         front_buffer = cv::imread(img_path);
     }
 
-    void TestLoad(int width, int height){
+    void TestLoad(int width, int height) {
         front_buffer = cv::Mat(height, width, CV_32FC3);
         for(int i = 0; i < width; i++){
             for(int j = 0; j < height; j++){
@@ -32,7 +34,7 @@ public:
         LoadFromFrameBuffer8UC3(frame_buffer);
     }
 
-    void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer){
+    void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer) {
         int width = frame_buffer->GetWidth();
         int height = frame_buffer->GetHeight();
         front_buffer = cv::Mat(height, width, CV_8UC3);
@@ -49,14 +51,14 @@ public:
         }
     }
 
-    void Show(int delay = 1){
+    void Show(int delay = 1) {
         cv::imshow("Rendered Image", front_buffer);
         cv::waitKey(delay);
     }
 
-    void KeepShow(){
+    void ShowLock(int delay = 1) {
         cv::imshow("Rendered Image", front_buffer);
-        cv::waitKey(0);
+        cv::waitKey(delay);
     }
 
 private:

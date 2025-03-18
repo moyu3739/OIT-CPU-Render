@@ -5,18 +5,19 @@
 #include "Primitive.h"
 #include "Pipeline.h"
 #include "FrameBuffer.h"
+#include "FrameBufferManager.h"
 
 
 class PipelineManager {
 public:
-    PipelineManager(int width, int height) {
-        frame_buffer = new FrameBuffer(width, height, true);
-    }
+    // @param[in] render_thread_num  number of threads to render the pipelines
+    // @param[in] blend_thread_num  number of threads to blend the frame buffer
+    PipelineManager(int render_thread_num, int blend_thread_num)
+    : render_thread_num(render_thread_num), blend_thread_num(blend_thread_num) {}
 
     ~PipelineManager() {
         for (PipelineBase* pipeline: opa_pipelines) delete pipeline;
         for (PipelineBase* pipeline: tra_pipelines) delete pipeline;
-        delete frame_buffer;
     }
 
     // create a pipeline
@@ -59,28 +60,18 @@ public:
         return pipeline;
     }
 
-    // render all pipelines
-    // @param[in] render_thread_num  number of threads to render the pipelines
-    // @param[in] blend_thread_num  number of threads to blend the frame buffer
-    void Render(int render_thread_num = 1, int blend_thread_num = 1) {
-        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false, render_thread_num);
-        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true, render_thread_num);
+    // render all pipelines, and blend the frame buffer
+    // @param[in] frame_buffer  frame buffer
+    void Render(FrameBuffer* frame_buffer) {
+        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, render_thread_num, false);
+        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, render_thread_num, true);
         frame_buffer->Blend(blend_thread_num);
     }
 
-    const FrameBuffer* GetFrameBuffer() const {
-        return frame_buffer;
-    }
-
-    // clear the frame buffer
-    // @param[in] bg_color  background color
-    void ClearFrameBuffer(const glm::vec3 bg_color = glm::vec3(0.0f)) {
-        frame_buffer->Clear(bg_color);
-    }
-
 private:
+    const int render_thread_num;
+    const int blend_thread_num;
     std::vector<PipelineBase*> opa_pipelines; // opaque pipelines
     std::vector<PipelineBase*> tra_pipelines; // transparent pipelines
-    FrameBuffer* frame_buffer; // a `Fragment` for each pixel
 };
 

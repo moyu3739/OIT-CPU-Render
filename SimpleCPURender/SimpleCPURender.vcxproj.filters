@@ -77,13 +77,22 @@
     <ClInclude Include="src\kernel\PixelBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\kernel\Allocator.h">
+    <ClInclude Include="src\kernel\HiAllocator.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\kernel\MemoryPool.h">
+    <ClInclude Include="src\kernel\HiMemoryPool.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\Block.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\ListAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\FrameBufferManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\kernel\Engine.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
