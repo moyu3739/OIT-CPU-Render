@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic>
 #include <cassert>
 
@@ -16,7 +18,7 @@ struct ThreadSafeInsertListNode{
 };
 
 
-template <typename T, typename Allocator>
+template <typename T>
 class ThreadSafeInsertList{
     using Node = ThreadSafeInsertListNode<T>;
 
@@ -80,13 +82,11 @@ public:
 public:
     ThreadSafeInsertList(): head(nullptr) {}
 
-    // ThreadSafeInsertList(const T& guard, Allocator* allocator): allocator(allocator){
-    //     head.store(CreateNode(guard), std::memory_order_relaxed);
-    // }
+    // destructor do nothing; user should call `Clear` to free all nodes by themselves
+    ~ThreadSafeInsertList() {}
 
-    ~ThreadSafeInsertList(){
-        // Clear();
-    }
+    ThreadSafeInsertList(const ThreadSafeInsertList&) = delete;
+    ThreadSafeInsertList& operator=(const ThreadSafeInsertList&) = delete;
 
     bool IsEmpty() const{
         return head.load(std::memory_order_acquire) == nullptr;
@@ -94,10 +94,6 @@ public:
 
     void ResetHead() {
         head.store(nullptr, std::memory_order_relaxed);
-    }
-
-    void SetAllocator(Allocator* allocator){
-        this->allocator = allocator;
     }
 
     // @brief  insert a new node after `prev_iter`
