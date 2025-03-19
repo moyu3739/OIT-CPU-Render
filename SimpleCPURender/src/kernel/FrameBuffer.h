@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <list>
+#include <atomic>
 #include <glm/glm.hpp>
 #include "utility.h"
 #include "Primitive.h"
@@ -62,14 +63,21 @@ public:
         pixel_buffer->CoverAt_T(glm::vec3(color), depth, x, y);
     }
 
-    // blend the per-pixel linked list to the color buffer;
-    // meanwhile, clear the per-pixel linked list
+    // blend the per-pixel linked list to the color buffer
     // @param[in] thread_num  number of threads to blend the per-pixel linked list
     void Blend(int thread_num = 1) {
+        BlendSplit(thread_num);
+        // BlendFetch(thread_num);
+    }
+
+    // blend the per-pixel linked list to the color buffer,
+    // using paralleling method of trivial splitting list buffers equally
+    // @param[in] thread_num  number of threads to blend the per-pixel linked list
+    void BlendSplit(int thread_num = 1) {
         if (!pplist_buffer_touched) return;
 
         if (thread_num == 1) {
-            BlendProcess(0, width * height);
+            BlendProcessRange(0, width * height);
         }
         else {
             std::vector<int> split_points = RangeSplit(0, width * height, thread_num);
@@ -77,7 +85,26 @@ public:
             for (int i = 0; i < thread_num; i++) {
                 int pplist_begin = split_points[i];
                 int pplist_end = split_points[i + 1];
-                threads.emplace_back(&FrameBuffer::BlendProcess, this, pplist_begin, pplist_end);
+                threads.emplace_back(&FrameBuffer::BlendProcessRange, this, pplist_begin, pplist_end);
+            }
+            for (std::thread& thread : threads) thread.join();
+        }
+    }
+
+    // blend the per-pixel linked list to the color buffer,
+    // using paralleling method of atomic fetching list by threads
+    // @param[in] thread_num  number of threads to blend the per-pixel linked list
+    void BlendFetch(int thread_num = 1) {
+        if (!pplist_buffer_touched) return;
+
+        if (thread_num == 1) {
+            BlendProcessRange(0, width * height);
+        }
+        else {
+            std::atomic<int> counter;
+            std::vector<std::thread> threads;
+            for (int i = 0; i < thread_num; i++) {
+                threads.emplace_back(&FrameBuffer::BlendProcessFetch, this, &counter);
             }
             for (std::thread& thread : threads) thread.join();
         }
@@ -115,8 +142,20 @@ private:
     // blend the per-pixel linked list to `base_color`, given the range of y
     // @param[in] pplist_begin  index of the first element in the per-pixel linked list
     // @param[in] pplist_end  index AFTER the last element in the per-pixel linked list
-    void BlendProcess(int pplist_begin, int pplist_end) {
+    void BlendProcessRange(int pplist_begin, int pplist_end) {
         for (int i = pplist_begin; i < pplist_end; i++) {
+            pplist_buffer->BlendAt(pixel_buffer->ColorAt(i), pixel_buffer->DepthAt(i), i);
+        }
+    }
+
+    // blend the per-pixel linked list to `base_color`,
+    // lists fetched atomically and orderly by threads themselves
+    // @param[in] pplist_begin  index of the first element in the per-pixel linked list
+    // @param[in] pplist_end  index AFTER the last element in the per-pixel linked list
+    void BlendProcessFetch(std::atomic<int>* counter) {
+        while (true) {
+            int i = counter->fetch_add(1, std::memory_order_relaxed);
+            if (i >= width * height) break;
             pplist_buffer->BlendAt(pixel_buffer->ColorAt(i), pixel_buffer->DepthAt(i), i);
         }
     }

@@ -126,7 +126,7 @@ public:
         float dot = glm::dot(input.world_normal, light_dir);
 
         glm::vec3 color = GetDiffuse(kd * glm::vec3(obj_color) * light_color, dot);
-        // return Output{glm::vec4(color, obj_color.a)};
+        // return Output{glm::vec4(color, 0.3f)};
         return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
     }
 
