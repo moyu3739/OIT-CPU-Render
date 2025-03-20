@@ -5,7 +5,6 @@
 #include "Primitive.h"
 #include "Pipeline.h"
 #include "FrameBuffer.h"
-#include "FrameBufferManager.h"
 
 
 class PipelineManager {

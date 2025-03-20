@@ -50,7 +50,8 @@ public:
 
     void LoadVertexBuffer();
 
-    Engine* InitEngine(int render_thread_num, int blend_thread_num);
+    Engine* InitEngine(int render_thread_num, int blend_thread_num,
+                       const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY);
 
     MyPipeline* InitPipeline();
 

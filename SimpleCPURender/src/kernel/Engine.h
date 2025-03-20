@@ -11,9 +11,10 @@
 // maintain pipeline manager, frame buffer manager and displayer
 class Engine {
 public:
-    Engine(int width, int height, int render_thread_num, int blend_thread_num, bool enable_oit = false) {
+    Engine(int width, int height, int render_thread_num, int blend_thread_num,
+           const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY, bool enable_oit = false) {
         pipeline_manager = new PipelineManager(render_thread_num, blend_thread_num);
-        frame_buffer_manager = new FrameBufferManager(width, height, render_thread_num, enable_oit);
+        frame_buffer_manager = new FrameBufferManager(width, height, render_thread_num, bg_color,bg_depth, enable_oit);
         displayer = new Displayer();
         self_created = true;
     }
@@ -41,22 +42,20 @@ public:
 
     // load front frame buffer to displayer, then show, and then clear front buffer
     // @param[in] delay  delay time for showing
-    // @param[in] bg_color  background color
-    void Show(int delay = 1, const glm::vec3& bg_color = glm::vec3(0.0f)) {
+    void Show(int delay = 1) {
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer(); // get front buffer
         displayer->LoadFromFrameBuffer(front_frame_buffer); // load buffer
         displayer->Show(delay); // show
-        front_frame_buffer->Clear(bg_color); // clear front buffer
+        front_frame_buffer->Clear(); // clear front buffer
     }
 
     // pipelined do render and show
     // @param[in] delay  delay time for showing
-    // @param[in] bg_color  background color
-    void PipelineRenderAndShow(int delay = 1, const glm::vec3& bg_color = glm::vec3(0.0f)) {
+    void PipelineRenderAndShow(int delay = 1) {
         // render
         std::thread render_thread(&Engine::Render, this);
         // show
-        Show(delay, bg_color);
+        Show(delay);
         render_thread.join();
         // swap front and back buffer
         frame_buffer_manager->SwapBuffer();
@@ -64,10 +63,9 @@ public:
 
     // serialized do render and show
     // @param[in] delay  delay time for showing
-    // @param[in] bg_color  background color
-    void RenderAndShow(int delay = 1, const glm::vec3& bg_color = glm::vec3(0.0f)) {
+    void RenderAndShow(int delay = 1) {
         FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer(); // get back buffer
-        back_frame_buffer->Clear(bg_color); // clear front buffer
+        back_frame_buffer->Clear(); // clear front buffer
         pipeline_manager->Render(back_frame_buffer); // render and blend
         frame_buffer_manager->SwapBuffer();
 

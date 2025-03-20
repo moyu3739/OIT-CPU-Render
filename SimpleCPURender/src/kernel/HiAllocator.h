@@ -7,24 +7,6 @@
 #include "HiMemoryPool.h"
 
 
-template <class T>
-class TrivialAllocator{
-public:
-    TrivialAllocator() {}
-
-    T* Allocate(){
-        return reinterpret_cast<T*>(malloc(sizeof(T)));
-    }
-
-    void Deallocate(T* ptr){
-        free(ptr);
-    }
-
-    void DeallocateAll() {} // do nothing
-};
-
-
-
 template <int block_size, class T>
 class HiAllocator{
 public:
@@ -35,6 +17,11 @@ public:
 public:
     HiAllocator() {
         assert(Block_t::capacity >= sizeof(T)); // make sure the block size is large enough
+        if (Block_t::capacity / sizeof(T) < 8) {
+            std::cerr << "[Warning] HiAllocator: block size is so small that can only contain "
+                      << Block_t::capacity / sizeof(T) << " objects. "
+                      << "Consider to increase the block size." << std::endl;
+        }
     }
 
     HiAllocator(MemoryPool_t* memory_pool, int pre_alloc){
@@ -132,15 +119,28 @@ class AllocatorGroup {
     using MemoryPool_t = MemoryPool<Allocator::block_size>;
 
 public:
-    AllocatorGroup(int n, int pre_alloc) {
+    // @param[in] n  number of allocators
+    // @param[in] pre_alloc  number of blocks pre-allocated for each allocator
+    // @note  if use this constructor, this allocator group will has a exclusive memory pool,
+    //        and the memory pool will be freed when the allocator group is destructed
+    AllocatorGroup(int n, int pre_alloc): memory_pool_exclusive(true) {
         memory_pool = new MemoryPool_t(n * pre_alloc);
+        allocators.resize(n);
+        for (int i = 0; i < n; i++) allocators[i] = new Allocator(memory_pool, pre_alloc);
+    }
+
+    // @param[in] memory_pool  shared memory pool
+    // @note  if use this constructor, this allocator group will use the shared memory pool,
+    //        and the memory pool will NOT be freed when the allocator group is destructed
+    AllocatorGroup(MemoryPool_t* memory_pool, int n, int pre_alloc)
+    : memory_pool(memory_pool), memory_pool_exclusive(false) {
         allocators.resize(n);
         for (int i = 0; i < n; i++) allocators[i] = new Allocator(memory_pool, pre_alloc);
     }
 
     ~AllocatorGroup() {
         for (Allocator* allocator: allocators) delete allocator;
-        delete memory_pool;
+        if (memory_pool_exclusive) delete memory_pool;
     }
 
     AllocatorGroup(const AllocatorGroup&) = delete;
@@ -157,6 +157,7 @@ public:
     }
 
 private:
+    const bool memory_pool_exclusive;
     MemoryPool_t* memory_pool;
     std::vector<Allocator*> allocators;
 };

@@ -8,9 +8,11 @@
 // maintain front and back frame buffer
 class DoubleFrameBufferManager {
 public:
-    DoubleFrameBufferManager(int width, int height, int allocator_num, bool enable_oit = false) {
-        front_buffer = new FrameBuffer(width, height, allocator_num, enable_oit);
-        back_buffer  = new FrameBuffer(width, height, allocator_num, enable_oit);
+    DoubleFrameBufferManager(int width, int height, int allocator_num,
+                             const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+                             bool enable_oit = false) {
+        front_buffer = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
+        back_buffer  = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
     }
 
     ~DoubleFrameBufferManager() {
@@ -46,10 +48,12 @@ private:
 // maintain render, load and clear frame buffer
 class TripleFrameBufferManager {
 public:
-    TripleFrameBufferManager(int width, int height, int allocator_num, bool enable_oit = false) {
-        back_buffer  = new FrameBuffer(width, height, allocator_num, enable_oit);
-        mid_buffer   = new FrameBuffer(width, height, allocator_num, enable_oit);
-        front_buffer = new FrameBuffer(width, height, allocator_num, enable_oit);
+    TripleFrameBufferManager(int width, int height, int allocator_num,
+                             const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+                             bool enable_oit = false) {
+        back_buffer  = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
+        mid_buffer   = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
+        front_buffer = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
     }
 
     ~TripleFrameBufferManager() {
@@ -95,19 +99,21 @@ private:
 // maintain `N` frame buffer,
 // index at 0 for backmost buffer, N-1 for frontmost buffer
 template <int N>
-class NbufferManager {
+class NframeBufferManager {
 public:
-    NbufferManager(int width, int height, int allocator_num, bool enable_oit = false) {
+    NframeBufferManager(int width, int height, int allocator_num,
+                   const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+                   bool enable_oit = false) {
         for (int i = 0; i < N; i++)
-            buffers[i] = new FrameBuffer(width, height, allocator_num, enable_oit);
+            buffers[i] = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit);
     }
 
-    ~NbufferManager() {
+    ~NframeBufferManager() {
         for (int i = 0; i < N; i++) delete buffers[i];
     }
 
-    NbufferManager(const NbufferManager&) = delete;
-    NbufferManager& operator=(const NbufferManager&) = delete;
+    NframeBufferManager(const NframeBufferManager&) = delete;
+    NframeBufferManager& operator=(const NframeBufferManager&) = delete;
 
     // rotate buffer
     void RotateBuffer() {

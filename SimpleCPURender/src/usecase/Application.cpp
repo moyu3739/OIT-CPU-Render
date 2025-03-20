@@ -97,8 +97,9 @@ void Application::LoadVertexBuffer(){
     }
 }
 
-Engine* Application::InitEngine(int render_thread_num, int blend_thread_num){
-    Engine* engine = new Engine(width, height, render_thread_num, blend_thread_num, true);
+Engine* Application::InitEngine(int render_thread_num, int blend_thread_num,
+                                const glm::vec3& bg_color, float bg_depth){
+    Engine* engine = new Engine(width, height, render_thread_num, blend_thread_num, bg_color, bg_depth, true);
 
     //////// set vertex-shader parameters
     auto vshader = new MyVertexShader;

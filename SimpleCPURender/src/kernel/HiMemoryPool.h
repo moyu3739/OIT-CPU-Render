@@ -55,7 +55,7 @@ public:
             && available_blocks.size() >  3 * total_blocks / 4) HalfShrink();
     }
 
-private:
+protected:
     // allocate a new block
     // @return the address of the new block
     // @note the new block is aligned with the size of the block (4KB)
@@ -81,7 +81,7 @@ private:
     // double-expand the list of available blocks
     void DoubleExpand(){
         Expand(total_blocks);
-        printf("[MemoryPool]\tDouble-expanded to %d blocks\n", total_blocks);
+        std::clog << "[Info] MemoryPool: Double-expanded to " << total_blocks << " blocks." << std::endl;
     }
 
     // shrink the list of available blocks
@@ -98,10 +98,10 @@ private:
     // half-shrink the list of available blocks
     void HalfShrink(){
         Shrink(total_blocks / 2);
-        printf("[MemoryPool]\tHalf-shrinked to %d blocks\n", total_blocks);
+        std::clog << "[Info] MemoryPool: Half-shrinked to " << total_blocks << " blocks." << std::endl;
     }
 
-private:
+protected:
     int pre_alloc; // the number of blocks to pre-allocate
     int total_blocks = 0; // the total number of blocks (both available and in-use)
     std::list<Block_t*> available_blocks;

@@ -11,19 +11,25 @@ private:
     struct Pixel {
         glm::vec3 color;
         float depth;
-        std::mutex mtx;
     };
 
 public:
-    PixelBuffer(int width, int height): width(width), height(height) {
+    PixelBuffer(int width, int height, const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY)
+    : width(width), height(height), bg_pixel{bg_color, bg_depth} {
         pixel_buffer = new Pixel[width * height];
+        mtx_buffer = new std::mutex[width * height];
     }
 
     ~PixelBuffer() {
         delete[] pixel_buffer;
+        delete[] mtx_buffer;
     }
 
-    void Clear(const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY) {
+    void Clear() {
+        for (int i = 0; i < width * height; i++) memcpy(&pixel_buffer[i], &bg_pixel, sizeof(Pixel));
+    }
+
+    void Clear(const glm::vec3& bg_color, float bg_depth = INFINITY) {
         for (int i = 0; i < width * height; i++) SetAt(bg_color, bg_depth, i);
     }
 
@@ -73,13 +79,15 @@ public:
     }
 
     void CoverAt_T(const glm::vec3& color, float depth, int idx) {
-        std::lock_guard<std::mutex> lock(pixel_buffer[idx].mtx);
+        std::lock_guard<std::mutex> lock(mtx_buffer[idx]);
         if (depth < pixel_buffer[idx].depth) SetAt(color, depth, idx);
     }
 
 private:
-    int width;
-    int height;
+    const int width;
+    const int height;
+    const Pixel bg_pixel;
     Pixel* pixel_buffer;
+    std::mutex* mtx_buffer;
 };
 

@@ -21,9 +21,11 @@ public:
     // @param[in] enable_oit  whether to enable order-independent transparency;
     //                        if false, the frame buffer will always ignore alpha channel,
     //                        which means fragment will be covered whenever it is in front of the existing fragment.
-    FrameBuffer(int width, int height, int allocator_num, bool enable_oit = false)
+    FrameBuffer(int width, int height, int allocator_num,
+                const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+                bool enable_oit = false)
         : width(width), height(height), enable_oit(enable_oit) {
-        pixel_buffer = new PixelBuffer(width, height);
+        pixel_buffer = new PixelBuffer(width, height, bg_color, bg_depth);
         if (enable_oit) pplist_buffer = new PerPixelListBuffer(width, height, allocator_num);
         Clear();
     }
@@ -37,9 +39,8 @@ public:
     }
 
     // clear the frame buffer
-    // @param[in] bg_color  background color
-    void Clear(const glm::vec3& bg_color = glm::vec3(0.0f)) {
-        pixel_buffer->Clear(bg_color);
+    void Clear() {
+        pixel_buffer->Clear();
 
         if (pplist_buffer_touched) {
             pplist_buffer->Clear();  
