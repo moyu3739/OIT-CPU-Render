@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <memory>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include "utility.h"
@@ -24,8 +25,8 @@ struct Vertex {
 };
 
 struct Object {
-    std::vector<Vertex> vertices;
-    Texture* texture = nullptr;
+    std::unique_ptr<std::vector<Vertex>> vertices;
+    std::unique_ptr<Texture> texture;
 };
 
 using MyVertexShader   = AnimeStyleVertexShader;
@@ -38,22 +39,16 @@ public:
     Application(int width, int height)
         : width(width), height(height) {}
 
-    ~Application() {
-        // clear shaders
-        for (auto& vshader : vshaders) delete vshader;
-        for (auto& fshader : fshaders) delete fshader;
-        // clear textures
-        for (auto& model : models) CheckDel(model.second.texture);
-    }
+    ~Application() {}
 
     void LoadModel(const std::string& model_name, const std::string& obj_path, const std::string& texture_path = "");
 
     void LoadVertexBuffer();
 
-    Engine* InitEngine(int render_thread_num, int blend_thread_num,
+    std::unique_ptr<Engine> InitEngine(int render_thread_num, int blend_thread_num,
                        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY);
 
-    MyPipeline* InitPipeline();
+    std::unique_ptr<MyPipeline> InitPipeline();
 
     // get model transformation
     // @param[in] translation  translation vector
@@ -113,7 +108,7 @@ public:
     std::unordered_map<std::string, Object> models; // <model_name, model>
     std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
 
-    std::vector<MyVertexShader*> vshaders;
-    std::vector<MyFragmentShader*> fshaders;
+    std::vector<std::unique_ptr<MyVertexShader>> vshaders;
+    std::vector<std::unique_ptr<MyFragmentShader>> fshaders;
 };
 

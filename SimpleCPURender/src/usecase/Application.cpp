@@ -11,16 +11,11 @@
 
 void Application::LoadModel(const std::string& model_name,
                             const std::string& obj_path, const std::string& texture_path){
-    // if the model has been loaded, clear the vertices and texture
-    if (models.find(model_name) != models.end()) {
-        models[model_name].vertices.clear();
-        CheckDel(models[model_name].texture);
-    }
-    else models.emplace(model_name, Object());
+    std::unique_ptr<std::vector<Vertex>> vertices;
+    std::unique_ptr<Texture> texture;
 
-    if (texture_path.empty()) models[model_name].texture = nullptr; // no texture
-    else models[model_name].texture = new ImageTexture(texture_path.c_str()); // load texture
-    std::vector<Vertex>& vertices = models[model_name].vertices;
+    vertices = std::make_unique<std::vector<Vertex>>();
+    if (!texture_path.empty()) texture = std::make_unique<ImageTexture>(texture_path.c_str());
 
     // use tiny_obj_loader to load mesh data
     tinyobj::attrib_t attrib;
@@ -59,7 +54,7 @@ void Application::LoadModel(const std::string& model_name,
                 vertex.texcoord.y = attrib.texcoords[2 * index.texcoord_index + 1];
             }
 
-            vertices.emplace_back(vertex);
+            vertices->emplace_back(vertex);
         }
     }
 
@@ -72,10 +67,12 @@ void Application::LoadModel(const std::string& model_name,
     printf("have loaded model: \"%s\"\n", model_name.c_str());
     printf("    - obj file:     %s\n", obj_path.c_str());
     printf("    - texture file: %s\n", texture_path.c_str());
-    printf("    - vertices:     %d\n", vertices.size());
-    printf("    - triangles:    %d\n", vertices.size() / 3);
+    printf("    - vertices:     %d\n", vertices->size());
+    printf("    - triangles:    %d\n", vertices->size() / 3);
 
-    assert(vertices.size() % 3 == 0);
+    assert(vertices->size() % 3 == 0);
+
+    models[model_name] = Object{std::move(vertices), std::move(texture)};
 }
 
 void Application::LoadVertexBuffer(){
@@ -87,7 +84,7 @@ void Application::LoadVertexBuffer(){
         const Object& obj = model.second;
 
         vertex_buffers[model_name] = std::vector<MyVertexShader::Input>();
-        for (const Vertex& vertex: obj.vertices){ // for each vertex in the model
+        for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
             MyVertexShader::Input vs_input;
             vs_input.model_pos = vertex.position;
             vs_input.model_normal = vertex.normal;
@@ -97,13 +94,12 @@ void Application::LoadVertexBuffer(){
     }
 }
 
-Engine* Application::InitEngine(int render_thread_num, int blend_thread_num,
+std::unique_ptr<Engine> Application::InitEngine(int render_thread_num, int blend_thread_num,
                                 const glm::vec3& bg_color, float bg_depth){
-    Engine* engine = new Engine(width, height, render_thread_num, blend_thread_num, bg_color, bg_depth, true);
+    auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num, bg_color, bg_depth, true);
 
     //////// set vertex-shader parameters
-    auto vshader = new MyVertexShader;
-    vshaders.emplace_back(vshader);
+    auto vshader = std::make_unique<MyVertexShader>();
 
     // initialize model transform
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
@@ -139,23 +135,22 @@ Engine* Application::InitEngine(int render_thread_num, int blend_thread_num,
         const std::vector<MyVertexShader::Input>& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
-        auto fshader = new MyFragmentShader;
-        fshaders.emplace_back(fshader);
-
+        auto fshader = std::make_unique<MyFragmentShader>();
         fshader->light_pos = light_pos;
-        fshader->texture = obj.texture;
+        fshader->texture = obj.texture.get();
         
         //////// load shaders
-        engine->pipeline_manager->CreatePipeline(vertex_buffer, vshader, fshader, true);
+        engine->pipeline_manager->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
+        fshaders.emplace_back(std::move(fshader));
     }
+    vshaders.emplace_back(std::move(vshader));
 
     return engine;
 }
 
-MyPipeline* Application::InitPipeline(){
+std::unique_ptr<MyPipeline> Application::InitPipeline(){
     //////// set vertex-shader parameters
-    auto vshader = new MyVertexShader;
-    vshaders.emplace_back(vshader);
+    auto vshader = std::make_unique<MyVertexShader>();
 
     // initialize model transform
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
@@ -185,14 +180,15 @@ MyPipeline* Application::InitPipeline(){
     // vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
 
     //////// set fragment-shader parameters
-    auto fshader = new MyFragmentShader;
-    fshaders.emplace_back(fshader);
-
+    auto fshader = std::make_unique<MyFragmentShader>();
     fshader->light_pos = light_pos;
     fshader->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
     
     //////// load shaders
-    return new MyPipeline(vshader, fshader);
+    std::unique_ptr<MyPipeline> pipeline = std::make_unique<MyPipeline>(vshader.get(), fshader.get());
+    vshaders.emplace_back(std::move(vshader));
+    fshaders.emplace_back(std::move(fshader));
+    return pipeline;
 }
 
 glm::mat4 Application::GetModelTransform(const glm::vec3& translation, float rotation, float scale){
@@ -235,7 +231,7 @@ glm::mat4 Application::GetOrthographicProjectionTransform(float orth_width, floa
 }
 
 void Application::ResetNormal(const std::string& model_name, bool left_handed){
-    std::vector<Vertex>& vertices = models[model_name].vertices;
+    std::vector<Vertex>& vertices = *models[model_name].vertices;
     assert(vertices.size() % 3 == 0);
 
     for (int i = 0; i < vertices.size(); i += 3){

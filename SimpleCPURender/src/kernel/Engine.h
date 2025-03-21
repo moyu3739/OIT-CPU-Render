@@ -12,19 +12,18 @@
 class Engine {
 public:
     Engine(int width, int height, int render_thread_num, int blend_thread_num,
-           const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY, bool enable_oit = false) {
-        pipeline_manager = new PipelineManager(render_thread_num, blend_thread_num);
-        frame_buffer_manager = new FrameBufferManager(width, height, render_thread_num, bg_color,bg_depth, enable_oit);
-        displayer = new Displayer();
-        self_created = true;
-    }
+           const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY, bool enable_oit = false)
+    : pipeline_manager(new PipelineManager(render_thread_num, blend_thread_num)),
+      frame_buffer_manager(new FrameBufferManager(width, height, render_thread_num, bg_color,bg_depth, enable_oit)),
+      displayer(new Displayer()),
+      self_created(true) {}
 
-    Engine(PipelineManager* pipeline_manager, FrameBufferManager* frame_buffer_manager, Displayer* displayer) {
-        this->pipeline_manager = pipeline_manager;
-        this->frame_buffer_manager = frame_buffer_manager;
-        this->displayer = displayer;
-        self_created = false;
-    }
+
+    Engine(PipelineManager* pipeline_manager, FrameBufferManager* frame_buffer_manager, Displayer* displayer)
+    : pipeline_manager(pipeline_manager),
+      frame_buffer_manager(frame_buffer_manager),
+      displayer(displayer),
+      self_created(false) {}
 
     ~Engine() {
         if (self_created) {
@@ -33,6 +32,10 @@ public:
             delete displayer;
         }
     }
+
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
+    
 
     // render all pipelines to back frame buffer, and blend
     void Render() {
@@ -75,9 +78,9 @@ public:
     }
 
 public:
-    bool self_created;
-    PipelineManager* pipeline_manager;
-    FrameBufferManager* frame_buffer_manager;
-    Displayer* displayer;
+    const bool self_created;
+    PipelineManager* const pipeline_manager;
+    FrameBufferManager* const frame_buffer_manager;
+    Displayer* const displayer;
 };
 

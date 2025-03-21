@@ -115,15 +115,15 @@ void PipelinedRenderCustom0(Application& app, float time_limit) {
         // render
         float start_render = tm.ReadTimer();
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
-        app.fshaders[0]->texture = app.models["Babala hair"].texture;
+        app.fshaders[0]->texture = app.models["Babala hair"].texture.get();
         pipeline->Render(&frame_buffer, render_thread_num, true);
 
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
-        app.fshaders[0]->texture = app.models["Babala body"].texture;
+        app.fshaders[0]->texture = app.models["Babala body"].texture.get();
         pipeline->Render(&frame_buffer, render_thread_num, true);
 
         pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
-        app.fshaders[0]->texture = app.models["Babala face"].texture;
+        app.fshaders[0]->texture = app.models["Babala face"].texture.get();
         pipeline->Render(&frame_buffer, render_thread_num, true);
 
         float duration_render = tm.ReadTimer() - start_render;
@@ -179,8 +179,6 @@ void PipelinedRenderCustom0(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete pipeline;
 }
 
 void PipelinedRenderCustom1(Application& app, float time_limit) {
@@ -227,15 +225,15 @@ void PipelinedRenderCustom1(Application& app, float time_limit) {
             // render
             float start_render = tm.ReadTimer();
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
-            app.fshaders[0]->texture = app.models["Babala hair"].texture;
+            app.fshaders[0]->texture = app.models["Babala hair"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
-            app.fshaders[0]->texture = app.models["Babala body"].texture;
+            app.fshaders[0]->texture = app.models["Babala body"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
-            app.fshaders[0]->texture = app.models["Babala face"].texture;
+            app.fshaders[0]->texture = app.models["Babala face"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             duration_render = tm.ReadTimer() - start_render;
@@ -299,8 +297,6 @@ void PipelinedRenderCustom1(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete pipeline;
 }
 
 void PipelinedRenderCustom2(Application& app, float time_limit) {
@@ -347,15 +343,15 @@ void PipelinedRenderCustom2(Application& app, float time_limit) {
             // render
             float start_render = tm.ReadTimer();
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
-            app.fshaders[0]->texture = app.models["Babala hair"].texture;
+            app.fshaders[0]->texture = app.models["Babala hair"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
-            app.fshaders[0]->texture = app.models["Babala body"].texture;
+            app.fshaders[0]->texture = app.models["Babala body"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
-            app.fshaders[0]->texture = app.models["Babala face"].texture;
+            app.fshaders[0]->texture = app.models["Babala face"].texture.get();
             pipeline->Render(back_buffer, render_thread_num, true);
 
             duration_render = tm.ReadTimer() - start_render;
@@ -427,8 +423,6 @@ void PipelinedRenderCustom2(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete pipeline;
 }
 
 void PipelinedRenderCustom3(Application& app, float time_limit) {
@@ -475,15 +469,15 @@ void PipelinedRenderCustom3(Application& app, float time_limit) {
             // render
             float start_render = tm.ReadTimer();
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
-            app.fshaders[0]->texture = app.models["Babala hair"].texture;
+            app.fshaders[0]->texture = app.models["Babala hair"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
-            app.fshaders[0]->texture = app.models["Babala body"].texture;
+            app.fshaders[0]->texture = app.models["Babala body"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
-            app.fshaders[0]->texture = app.models["Babala face"].texture;
+            app.fshaders[0]->texture = app.models["Babala face"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             duration_render = tm.ReadTimer() - start_render;
@@ -554,8 +548,6 @@ void PipelinedRenderCustom3(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete pipeline;
 }
 
 void PipelinedRenderCustom4(Application& app, float time_limit) {
@@ -602,15 +594,15 @@ void PipelinedRenderCustom4(Application& app, float time_limit) {
             // render
             float start_render = tm.ReadTimer();
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala hair"]);
-            app.fshaders[0]->texture = app.models["Babala hair"].texture;
+            app.fshaders[0]->texture = app.models["Babala hair"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala body"]);
-            app.fshaders[0]->texture = app.models["Babala body"].texture;
+            app.fshaders[0]->texture = app.models["Babala body"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             pipeline->BoundVertexBuffer(app.vertex_buffers["Babala face"]);
-            app.fshaders[0]->texture = app.models["Babala face"].texture;
+            app.fshaders[0]->texture = app.models["Babala face"].texture.get();
             pipeline->Render(render_buffer, render_thread_num, true);
 
             duration_render = tm.ReadTimer() - start_render;
@@ -687,12 +679,10 @@ void PipelinedRenderCustom4(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete pipeline;
 }
 
 void PipelinedRender(Application& app, float time_limit) {
-    Engine* engine = app.InitEngine(16, 16);
+    auto engine = app.InitEngine(16, 16, glm::vec3(1.0f), INFINITE);
 
     const float T = 3.0f;
     const float Y = 1.0f;
@@ -734,14 +724,11 @@ void PipelinedRender(Application& app, float time_limit) {
         printf("Average frame time:\t%.1f ms\n", now * 1000 / frame_count);
         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
     }
-
-    delete engine;
 }
 
 void RenderFrame(Application& app) {
-    Engine* engine = app.InitEngine(16, 16);
+    auto engine = app.InitEngine(16, 16);
     engine->RenderAndShow(0);
-    delete engine;
 }
 
 
@@ -758,7 +745,7 @@ int main(){
 
     // RenderFrame(app);
     // PipelinedRender(app, 5.0f);
-    PipelinedRenderCustom4(app, 300.0f);
+    PipelinedRenderCustom4(app, 50.0f);
 
     return 0;
 }
