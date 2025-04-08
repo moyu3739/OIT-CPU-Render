@@ -24,12 +24,21 @@
     <ClCompile Include="src\kernel\ImageTexture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\usecase\Anime.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\usecase\CornellBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\usecase\Intensity.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\kernel\Pipeline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\usecase\ItensityShader.h">
+    <ClInclude Include="src\usecase\IntensityShader.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\Primitive.h">
@@ -93,6 +102,21 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\Engine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\Anime.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\CornellBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\Shape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\ShapeShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\Intensity.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

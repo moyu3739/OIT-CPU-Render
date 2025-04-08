@@ -8,8 +8,7 @@
 #include <glm/ext.hpp>
 #include "utility.h"
 #include "Primitive.h"
-#include "ItensityShader.h"
-#include "AnimeStyleShader.h"
+#include "IntensityShader.h"
 #include "Texture.h"
 #include "ImageTexture.h"
 #include "Pipeline.h"
@@ -29,10 +28,6 @@ struct Object {
     std::unique_ptr<Texture> texture;
 };
 
-using MyVertexShader   = AnimeStyleVertexShader;
-using MyFragmentShader = AnimeStyleFragmentShader;
-using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
-
 
 class Application{
 public:
@@ -41,14 +36,20 @@ public:
 
     ~Application() {}
 
+    virtual void Run() = 0;
+
     void LoadModel(const std::string& model_name, const std::string& obj_path, const std::string& texture_path = "");
 
-    void LoadVertexBuffer();
+    virtual void LoadVertexBuffer() = 0;
 
-    std::unique_ptr<Engine> InitEngine(int render_thread_num, int blend_thread_num,
-                       const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY);
+    virtual std::unique_ptr<Engine> InitEngine(int render_thread_num, int blend_thread_num,
+                       const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY) = 0;
 
-    std::unique_ptr<MyPipeline> InitPipeline();
+    virtual void UpdateTransform(const glm::mat4& transform) = 0;
+
+    void RenderFrame();
+
+    void RenderAnimation(float time_limit);
 
     // get model transformation
     // @param[in] translation  translation vector
@@ -106,9 +107,5 @@ public:
     int width;
     int height;
     std::unordered_map<std::string, Object> models; // <model_name, model>
-    std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
-
-    std::vector<std::unique_ptr<MyVertexShader>> vshaders;
-    std::vector<std::unique_ptr<MyFragmentShader>> fshaders;
 };
 

@@ -6,7 +6,7 @@
 #include "Texture.h"
 
 
-class ItensityVertexShader: public VertexShader{
+class IntensityVertexShader: public VertexShader{
 public:
     struct Input{
         glm::vec3 model_pos; // vertex position in model space
@@ -22,9 +22,9 @@ public:
     };
 
 public:
-    ItensityVertexShader() {}
+    IntensityVertexShader() {}
 
-    ~ItensityVertexShader() {}
+    ~IntensityVertexShader() {}
 
     Output Call(const Input& input){
         Output output;
@@ -42,7 +42,7 @@ public:
 };
 
 
-class ItensityFragmentShader: public FragmentShader{
+class IntensityFragmentShader: public FragmentShader{
 public:
     struct Input{
         glm::vec3 world_pos; // vertex position in world space
@@ -55,27 +55,31 @@ public:
     };
 
 public:
-    ItensityFragmentShader() {}
+    IntensityFragmentShader() {}
 
-    ~ItensityFragmentShader() {}
+    ~IntensityFragmentShader() {}
 
     Output Call(const Input& input){
         // obj_color = texture->Sample(input.texcoord);
-        glm::vec3 ambient = ka * obj_color;
+        glm::vec3 frag_color;
+        if (texture != nullptr) frag_color = glm::vec3(texture->Sample(input.texcoord));
+        else frag_color = obj_color;
+        glm::vec3 ambient = ka * frag_color;
         glm::vec3 light_dir = glm::normalize(light_pos - input.world_pos);
-        glm::vec3 diffuse = (kd * glm::max(glm::dot(input.world_normal, light_dir), 0.0f)) * obj_color * light_color;
-        // glm::vec3 diffuse = (kd * glm::abs(glm::dot(input.world_normal, light_dir))) * obj_color * light_color;
+        glm::vec3 diffuse = (kd * glm::max(glm::dot(input.world_normal, light_dir), 0.0f)) * frag_color * light_color;
+        // glm::vec3 diffuse = (kd * glm::abs(glm::dot(input.world_normal, light_dir))) * frag_color * light_color;
         glm::vec3 color = ambient + diffuse;
-        return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.7f, 0.0f, 1.0f))};
+        // return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.7f, 0.0f, 1.0f))};
+        return Output{glm::vec4(color, 1.0f)};
     }
 
     // interpolate vertex attributes
     // @param[in] v1, v2, v3  vertex attributes of the triangle
     // @param[in] barycentric  barycentric coordinates of the pixel
     Input Interpolate(
-            const ItensityVertexShader::Output& v1,
-            const ItensityVertexShader::Output& v2,
-            const ItensityVertexShader::Output& v3,
+            const IntensityVertexShader::Output& v1,
+            const IntensityVertexShader::Output& v2,
+            const IntensityVertexShader::Output& v3,
             const glm::vec3& barycentric){
         Input fs_input;
         fs_input.world_pos = InterpolateAttr(v1.world_pos, v2.world_pos, v3.world_pos, barycentric);

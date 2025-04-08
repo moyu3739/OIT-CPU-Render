@@ -3,6 +3,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include "Application.h"
+#include "Anime.h"
+#include "Intensity.h"
+#include "CornellBox.h"
+
 #include "Pipeline.h"
 #include "Displayer.h"
 #include "FrameBuffer.h"
@@ -79,7 +83,7 @@
 
 
 
-void PipelinedRenderCustom0(Application& app, float time_limit) {
+void PipelinedRenderCustom0(Anime& app, float time_limit) {
     const int render_thread_num = 16;
     const int blend_thread_num  = 16;
 
@@ -181,7 +185,7 @@ void PipelinedRenderCustom0(Application& app, float time_limit) {
     }
 }
 
-void PipelinedRenderCustom1(Application& app, float time_limit) {
+void PipelinedRenderCustom1(Anime& app, float time_limit) {
     const int render_thread_num = 16;
     const int blend_thread_num  = 16;
 
@@ -299,7 +303,7 @@ void PipelinedRenderCustom1(Application& app, float time_limit) {
     }
 }
 
-void PipelinedRenderCustom2(Application& app, float time_limit) {
+void PipelinedRenderCustom2(Anime& app, float time_limit) {
     const int render_thread_num = 16;
     const int blend_thread_num  = 16;
 
@@ -425,7 +429,7 @@ void PipelinedRenderCustom2(Application& app, float time_limit) {
     }
 }
 
-void PipelinedRenderCustom3(Application& app, float time_limit) {
+void PipelinedRenderCustom3(Anime& app, float time_limit) {
     const int render_thread_num = 16;
     const int blend_thread_num  = 16;
 
@@ -550,7 +554,7 @@ void PipelinedRenderCustom3(Application& app, float time_limit) {
     }
 }
 
-void PipelinedRenderCustom4(Application& app, float time_limit) {
+void PipelinedRenderCustom4(Anime& app, float time_limit) {
     const int render_thread_num = 16;
     const int blend_thread_num  = 16;
 
@@ -701,7 +705,7 @@ void PipelinedRender(Application& app, float time_limit) {
 
         float r = 2 * 3.14159 * t / T;
         float y = Y * sin(r);
-        app.vshaders[0]->model = app.GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.5f);
+        app.UpdateTransform(app.GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.5f));
 
         // render and show
         float start_render = tm.ReadTimer();
@@ -732,20 +736,34 @@ void RenderFrame(Application& app) {
 }
 
 
-int main(){
-    // Application app(1200, 900);
-    Application app(900, 900);
+// int main(){
+//     // Application app(1200, 900);
+//     Anime app(900, 900);
 
-    // app.LoadModel("Ankila", "asset/obj/Ankila.obj", "asset/texture/Ankila.png");
-    app.LoadModel("Babala hair", "asset/obj/Babala/hair.obj", "asset/texture/Babala/hair.png");
-    app.LoadModel("Babala face", "asset/obj/Babala/face.obj", "asset/texture/Babala/face.png");
-    app.LoadModel("Babala body", "asset/obj/Babala/body.obj", "asset/texture/Babala/body.png");
-    // app.ResetNormalAll();
-    app.LoadVertexBuffer();
+//     // app.LoadModel("Ankila", "asset/obj/Ankila.obj", "asset/texture/Ankila.png");
+//     app.LoadModel("Babala hair", "asset/obj/Babala/hair.obj", "asset/texture/Babala/hair.png");
+//     app.LoadModel("Babala face", "asset/obj/Babala/face.obj", "asset/texture/Babala/face.png");
+//     app.LoadModel("Babala body", "asset/obj/Babala/body.obj", "asset/texture/Babala/body.png");
+//     // app.ResetNormalAll();
+//     app.LoadVertexBuffer();
 
-    // RenderFrame(app);
-    // PipelinedRender(app, 5.0f);
-    PipelinedRenderCustom4(app, 50.0f);
+//     // RenderFrame(app);
+//     // PipelinedRender(app, 5.0f);
+//     PipelinedRenderCustom4(app, 50.0f);
+
+//     return 0;
+// }
+
+
+int main() {
+    Anime app = Anime(2560, 2560);
+    app.Run();
+
+    // CornellBox app = CornellBox(2560, 2560, 200, true);
+    // app.Run();
+
+    // Intensity app = Intensity(800, 800);
+    // app.Run();
 
     return 0;
 }

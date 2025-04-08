@@ -95,17 +95,6 @@ public:
         return rgb + glm::vec3(m);
     }
 
-    // float CalcDiffuseCoef(float dot) {
-    //     if (dot <= 0.0f) return 0.0f;
-    //     return dot / (kv * dot - kv + 1.0f); // kv in [0, 1]
-    // }
-
-    // float CalcDiffuseCoef(float dot) {
-    //     if (dot <= 0.0f) return 0.0f;
-    //     else if (dot >= 1.0f - kv) return 1.0f;
-    //     return (1.0f - kv) * dot; // kv in [0, 1]
-    // }
-
     float CalcValueCoef(float x) {
         if (x <= 0.0f) return ka;
         else if (x >= kv) return 1.0f;
@@ -126,8 +115,8 @@ public:
         float dot = glm::dot(input.world_normal, light_dir);
 
         glm::vec3 color = GetDiffuse(kd * glm::vec3(obj_color) * light_color, dot);
-        // return Output{glm::vec4(color, 0.3f)};
-        return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
+        return Output{glm::vec4(color, 0.3f)};
+        // return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
     }
 
     // interpolate vertex attributes
