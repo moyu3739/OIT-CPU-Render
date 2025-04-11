@@ -2,6 +2,25 @@
 #include "Timer.h"
 
 
+// void Intensity::LoadVertexBuffer() {
+//     // clear vertex buffers
+//     vertex_buffers.clear();
+//     // load vertex buffers
+//     for (const auto& model: models){ // for each model
+//         const std::string& model_name = model.first;
+//         const Object& obj = model.second;
+
+//         vertex_buffers[model_name] = std::vector<MyVertexShader::Input>();
+//         for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
+//             MyVertexShader::Input vs_input;
+//             vs_input.model_pos = vertex.position;
+//             vs_input.model_normal = vertex.normal;
+//             vs_input.texcoord = vertex.texcoord;
+//             vertex_buffers[model_name].emplace_back(vs_input);
+//         }
+//     }
+// }
+
 void Intensity::LoadVertexBuffer() {
     // clear vertex buffers
     vertex_buffers.clear();
@@ -10,13 +29,16 @@ void Intensity::LoadVertexBuffer() {
         const std::string& model_name = model.first;
         const Object& obj = model.second;
 
-        vertex_buffers[model_name] = std::vector<MyVertexShader::Input>();
-        for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
-            MyVertexShader::Input vs_input;
-            vs_input.model_pos = vertex.position;
-            vs_input.model_normal = vertex.normal;
-            vs_input.texcoord = vertex.texcoord;
-            vertex_buffers[model_name].emplace_back(vs_input);
+        vertex_datas[model_name] = std::vector<MyVertexShader::Input>(obj.vertices->size());
+        vertex_buffers[model_name] = std::vector<VertexShader::InputWrapper>(obj.vertices->size());
+        auto& vd = vertex_datas[model_name];
+        auto& vb = vertex_buffers[model_name];
+        // for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
+        for (int i = 0; i < obj.vertices->size(); i++) {
+            vd[i].model_pos    = obj.vertices->at(i).position;
+            vd[i].model_normal = obj.vertices->at(i).normal;
+            vd[i].texcoord     = obj.vertices->at(i).texcoord;
+            vb[i] = VertexShader::InputWrapper{&vd[i]};
         }
     }
 }
@@ -30,13 +52,13 @@ std::unique_ptr<Engine> Intensity::InitEngine(int render_thread_num, int blend_t
 
     // initialize model transform
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
-    float rotation = glm::radians(0.0f);
-    float scale = 2.0f;
+    float rotation = glm::radians(45.0f);
+    float scale = 1.0f;
     vshader->model = GetModelTransform(translation, rotation, scale);
 
     // initialize view transform
-    const glm::vec3 eye(0.0f, 0.0f, 6.0f); // camera position
-    const glm::vec3 target(0.0f, 0.0f, 0.0f); // `eye` and `target` defines the direction the camera looking at
+    const glm::vec3 eye(0.0f, 2.0f, 8.0f); // camera position
+    const glm::vec3 target(0.0f, 2.0f, 0.0f); // `eye` and `target` defines the direction the camera looking at
     const glm::vec3 up(0.0f, 1.0f, 0.0f); // `up` vector of the camera
     vshader->view = GetViewTransform(eye, target, up);
 
@@ -59,7 +81,7 @@ std::unique_ptr<Engine> Intensity::InitEngine(int render_thread_num, int blend_t
     for (const auto& nvb: vertex_buffers) {
         const std::string& model_name = nvb.first;
         const Object& obj = models[model_name];
-        const std::vector<MyVertexShader::Input>& vertex_buffer = nvb.second;
+        const std::vector<VertexShader::InputWrapper>& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
         auto fshader = std::make_unique<MyFragmentShader>();
@@ -76,7 +98,7 @@ std::unique_ptr<Engine> Intensity::InitEngine(int render_thread_num, int blend_t
     return engine;
 }
 
-std::unique_ptr<Intensity::MyPipeline> Intensity::InitPipeline(){
+std::unique_ptr<Pipeline> Intensity::InitPipeline(int render_thread_num){
     //////// set vertex-shader parameters
     auto vshader = std::make_unique<MyVertexShader>();
 
@@ -112,7 +134,7 @@ std::unique_ptr<Intensity::MyPipeline> Intensity::InitPipeline(){
     fshader->light_pos = light_pos;
     
     //////// load shaders
-    std::unique_ptr<MyPipeline> pipeline = std::make_unique<MyPipeline>(vshader.get(), fshader.get());
+    auto pipeline = std::make_unique<Pipeline>(vshader.get(), fshader.get(), render_thread_num);
     vshaders.emplace_back(std::move(vshader));
     fshaders.emplace_back(std::move(fshader));
     return pipeline;

@@ -51,7 +51,7 @@ std::unique_ptr<Engine> CornellBox::InitEngine(int render_thread_num, int blend_
 
         const std::string& model_name = nvb.first;
         const Object& obj = models[model_name];
-        const std::vector<MyVertexShader::Input>& vertex_buffer = nvb.second;
+        const std::vector<VertexShader::InputWrapper>& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
         auto fshader = std::make_unique<MyFragmentShader>();
@@ -98,7 +98,15 @@ void CornellBox::LoadVertexBufferShapesDivided() {
             default:
                 assert(false);
         }
-        vertex_buffers[name] = shape->GetVertexBuffer();
+
+        vertex_datas[name] = shape->GetVertexData();
+        vertex_buffers[name] = std::vector<VertexShader::InputWrapper>(vertex_datas[name].size());
+        auto& vd = vertex_datas[name];
+        auto& vb = vertex_buffers[name];
+        for (int j = 0; j < vd.size(); j++) {
+            vb[j] = VertexShader::InputWrapper{&vd[j]};
+        }
+
         shapes.emplace_back(std::move(shape));
     }
 }
@@ -106,13 +114,13 @@ void CornellBox::LoadVertexBufferShapesDivided() {
 void CornellBox::LoadVertexBufferShapesCombined() {
     LoadVertexBufferShapesDivided();
 
-    for (auto& vertex_buffer: vertex_buffers) {
-        auto& vertices = vertex_buffer.second;
+    for (auto& vertex_data: vertex_datas) {
+        auto& vertices = vertex_data.second;
         glm::vec3 translation = RandomVec3(glm::vec3(-1.5f), glm::vec3(1.5f));
         for (auto& vertex: vertices) vertex.position += translation;
     }
 
-    std::vector<typename MyVertexShader::Input> vertex_buffers_combined;
+    std::vector<VertexShader::InputWrapper> vertex_buffers_combined;
     for (auto& vertex_buffer: vertex_buffers) {
         auto& vertices = vertex_buffer.second;
         vertex_buffers_combined.insert(

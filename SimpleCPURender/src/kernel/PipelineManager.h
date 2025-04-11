@@ -15,16 +15,15 @@ public:
     : render_thread_num(render_thread_num), blend_thread_num(blend_thread_num) {}
 
     ~PipelineManager() {
-        for (PipelineBase* pipeline: opa_pipelines) delete pipeline;
-        for (PipelineBase* pipeline: tra_pipelines) delete pipeline;
+        for (Pipeline* pipeline: opa_pipelines) delete pipeline;
+        for (Pipeline* pipeline: tra_pipelines) delete pipeline;
     }
 
-    // create a pipeline
+    // create an empty pipeline without any shaders or vertex buffer
     // @param[in] is_transparent  whether the pipeline is transparent
     // @return  shared pointer to the created pipeline
-    template <class VS, class FS>
-    Pipeline<VS, FS>* CreatePipeline(bool is_transparent) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>;
+    Pipeline* CreatePipeline(bool is_transparent) {
+        Pipeline* pipeline = new Pipeline(render_thread_num);
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
@@ -35,9 +34,8 @@ public:
     // @param[in] vertex_shader  vertex shader
     // @param[in] fragment_shader  fragment shader
     // @return  shared pointer to the created pipeline
-    template <class VS, class FS>
-    Pipeline<VS, FS>* CreatePipeline(VS* vertex_shader, FS* fragment_shader, bool is_transparent) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(vertex_shader, fragment_shader);
+    Pipeline* CreatePipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader, bool is_transparent) {
+        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, render_thread_num);
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
@@ -49,10 +47,9 @@ public:
     // @param[in] fragment_shader  fragment shader
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored in this pipeline
     // @return  shared pointer to the created pipeline
-    template <class VS, class FS>
-    Pipeline<VS, FS>* CreatePipeline(const std::vector<typename VS::Input>& vertex_buffer, 
-                                     VS* vertex_shader, FS* fragment_shader, bool use_oit) {
-        Pipeline<VS, FS>* pipeline = new Pipeline<VS, FS>(vertex_shader, fragment_shader);
+    Pipeline* CreatePipeline(const std::vector<VertexShader::InputWrapper>& vertex_buffer, 
+            VertexShader* vertex_shader, FragmentShader* fragment_shader, bool use_oit) {
+        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, render_thread_num);
         pipeline->BoundVertexBuffer(vertex_buffer); // bind vertex buffer
         if (use_oit) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
@@ -62,15 +59,15 @@ public:
     // render all pipelines, and blend the frame buffer
     // @param[in] frame_buffer  frame buffer
     void Render(FrameBuffer* frame_buffer) {
-        for (PipelineBase* pipeline: opa_pipelines) pipeline->Render(frame_buffer, render_thread_num, false);
-        for (PipelineBase* pipeline: tra_pipelines) pipeline->Render(frame_buffer, render_thread_num, true);
+        for (Pipeline* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false);
+        for (Pipeline* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true);
         frame_buffer->Blend(blend_thread_num);
     }
 
 private:
     const int render_thread_num;
     const int blend_thread_num;
-    std::vector<PipelineBase*> opa_pipelines; // opaque pipelines
-    std::vector<PipelineBase*> tra_pipelines; // transparent pipelines
+    std::vector<Pipeline*> opa_pipelines; // opaque pipelines
+    std::vector<Pipeline*> tra_pipelines; // transparent pipelines
 };
 

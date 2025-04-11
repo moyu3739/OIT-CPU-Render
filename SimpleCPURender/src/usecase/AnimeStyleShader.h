@@ -18,7 +18,6 @@ public:
         glm::vec3 world_pos; // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
         glm::vec2 texcoord; // texture coordinate
-        glm::vec4 __position__; // vertex position in clip space
     };
 
 public:
@@ -26,13 +25,30 @@ public:
 
     ~AnimeStyleVertexShader() {}
 
-    Output Call(const Input& input){
-        Output output;
+    virtual void* MakeInput() const override {
+        return new Input;
+    }
+
+    virtual void* MakeOutput() const override {
+        return new Output;
+    }
+
+    virtual void DestroyInput(void* input) const override {
+        delete reinterpret_cast<Input*>(input);
+    }
+
+    virtual void DestroyOutput(void* output) const override {
+        delete reinterpret_cast<Output*>(output);
+    }
+
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) override {
+        const Input& input = *reinterpret_cast<const Input*>(input_wrapper.__data__);
+        Output& output = *reinterpret_cast<Output*>(output_wrapper.__data__);
+
         output.world_pos = glm::vec3(model * glm::vec4(input.model_pos, 1.0f));
         output.world_normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(model))) * input.model_normal);
         output.texcoord = input.texcoord;
-        output.__position__ = projection * view * model * glm::vec4(input.model_pos, 1.0f);
-        return output;
+        output_wrapper.__position__ = projection * view * model * glm::vec4(input.model_pos, 1.0f);
     }
 
 public:
@@ -51,7 +67,7 @@ public:
     };
 
     struct Output{
-        glm::vec4 __color__; // fragment color
+
     };
 
 public:
@@ -109,29 +125,51 @@ public:
         return HSV2RGB(hsv);
     }
 
-    Output Call(const Input& input){
-        glm::vec4 obj_color = texture->Sample(input.texcoord);
-        glm::vec3 light_dir = glm::normalize(light_pos - input.world_pos);
-        float dot = glm::dot(input.world_normal, light_dir);
-
-        glm::vec3 color = GetDiffuse(kd * glm::vec3(obj_color) * light_color, dot);
-        return Output{glm::vec4(color, 0.3f)};
-        // return Output{glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f))};
-    }
-
     // interpolate vertex attributes
     // @param[in] v1, v2, v3  vertex attributes of the triangle
     // @param[in] barycentric  barycentric coordinates of the pixel
-    Input Interpolate(
-            const AnimeStyleVertexShader::Output& v1,
-            const AnimeStyleVertexShader::Output& v2,
-            const AnimeStyleVertexShader::Output& v3,
-            const glm::vec3& barycentric){
-        Input fs_input;
+    // @param[out] fs_input  fragment shader input
+    virtual void Interpolate(
+            const VertexShader::OutputWrapper& v0_wrapper,
+            const VertexShader::OutputWrapper& v1_wrapper,
+            const VertexShader::OutputWrapper& v2_wrapper,
+            const glm::vec3& barycentric,
+            InputWrapper& fs_input_wrapper) override {
+        const auto& v1 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v0_wrapper.__data__);
+        const auto& v2 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v1_wrapper.__data__);
+        const auto& v3 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v2_wrapper.__data__);
+        Input& fs_input = *reinterpret_cast<Input*>(fs_input_wrapper.__data__);
         fs_input.world_pos = InterpolateAttr(v1.world_pos, v2.world_pos, v3.world_pos, barycentric);
         fs_input.world_normal = InterpolateAttr(v1.world_normal, v2.world_normal, v3.world_normal, barycentric);
         fs_input.texcoord = InterpolateAttr(v1.texcoord, v2.texcoord, v3.texcoord, barycentric);
-        return fs_input;
+    }
+
+    virtual void* MakeInput() const override {
+        return new Input;
+    }
+
+    virtual void* MakeOutput() const override {
+        return new Output;
+    }
+
+    virtual void DestroyInput(void* input) const override {
+        delete reinterpret_cast<Input*>(input);
+    }
+
+    virtual void DestroyOutput(void* output) const override {
+        delete reinterpret_cast<Output*>(output);
+    }
+
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) override {
+        const Input& input = *reinterpret_cast<const Input*>(input_wrapper.__data__);
+
+        glm::vec4 obj_color = texture->Sample(input.texcoord);
+        glm::vec3 light_dir = glm::normalize(light_pos - input.world_pos);
+        float dot = glm::dot(input.world_normal, light_dir);
+        glm::vec3 color = GetDiffuse(kd * glm::vec3(obj_color) * light_color, dot);
+
+        // output_wrapper.__color__ = glm::vec4(color, 0.3f);
+        output_wrapper.__color__ = glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f));
     }
 
 public:

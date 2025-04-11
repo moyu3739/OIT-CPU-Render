@@ -15,17 +15,17 @@ public:
     virtual ~Shape() = default;
 
     // Get the vertex buffer of the shape
-    virtual const std::vector<ShapeVertex>& GetVertexBuffer() const {
-        return vertex_buffer;
+    virtual const std::vector<ShapeVertex>& GetVertexData() const {
+        return vertex_data;
     }
 
     // Get the number of vertices in the shape
     virtual size_t GetVertexCount() const {
-        return vertex_buffer.size();
+        return vertex_data.size();
     }
 
 protected:
-    std::vector<ShapeVertex> vertex_buffer;
+    std::vector<ShapeVertex> vertex_data;
 };
 
 
@@ -42,11 +42,11 @@ public:
 
         auto vertices = GetVertices(radius, segment);
         auto indice = GetIndices(segment);
-        vertex_buffer.resize(indice.size());
+        vertex_data.resize(indice.size());
         for (int i = 0; i < indice.size(); i++) {
-            vertex_buffer[i].position = vertices[indice[i]].position;
-            vertex_buffer[i].normal = vertices[indice[i]].position / radius; // normalize
-            vertex_buffer[i].color = color; // default color
+            vertex_data[i].position = vertices[indice[i]].position;
+            vertex_data[i].normal = vertices[indice[i]].position / radius; // normalize
+            vertex_data[i].color = color; // default color
         }
     }
 
@@ -148,7 +148,7 @@ public:
         this->color = color;
 
         float deltaPhi = 2.0f * PI / segment;
-        vertex_buffer.clear();
+        vertex_data.clear();
         for (int i = 0; i < segment - 1; i++) {
             float phi = i * 2.0f * PI / segment;
             ShapeVertex v1, v2, v3;
@@ -158,9 +158,9 @@ public:
             v2.normal = OneNormal(v2.position);
             v3.normal = OneNormal(v3.position);
             v1.normal = 0.5f * (v2.normal + v3.normal);
-            vertex_buffer.emplace_back(v1);
-            vertex_buffer.emplace_back(v2);
-            vertex_buffer.emplace_back(v3);
+            vertex_data.emplace_back(v1);
+            vertex_data.emplace_back(v2);
+            vertex_data.emplace_back(v3);
         }
         ShapeVertex v1, v2, v3;
         v1.position = glm::vec3(0.0f, height, 0.0f);
@@ -169,9 +169,9 @@ public:
         v2.normal = OneNormal(v2.position);
         v3.normal = OneNormal(v3.position);
         v1.normal = 0.5f * (v2.normal + v3.normal);
-        vertex_buffer.emplace_back(v1);
-        vertex_buffer.emplace_back(v2);
-        vertex_buffer.emplace_back(v3);
+        vertex_data.emplace_back(v1);
+        vertex_data.emplace_back(v2);
+        vertex_data.emplace_back(v3);
     
         for (int i = 0; i < segment - 1; i++) {
             float phi = i * 2.0f * PI / segment;
@@ -182,9 +182,9 @@ public:
             v2.normal = glm::vec3(0.0f, -1.0f, 0.0f);
             v3.normal = glm::vec3(0.0f, -1.0f, 0.0f);
             v1.normal = glm::vec3(0.0f, -1.0f, 0.0f);
-            vertex_buffer.emplace_back(v1);
-            vertex_buffer.emplace_back(v2);
-            vertex_buffer.emplace_back(v3);
+            vertex_data.emplace_back(v1);
+            vertex_data.emplace_back(v2);
+            vertex_data.emplace_back(v3);
         }
         v1.position = glm::vec3(0.0f, 0.0f, 0.0f);
         v2.position = glm::vec3(radius * cos(-deltaPhi), 0.0f, radius * sin(-deltaPhi));
@@ -192,11 +192,11 @@ public:
         v2.normal = glm::vec3(0.0f, -1.0f, 0.0f);
         v3.normal = glm::vec3(0.0f, -1.0f, 0.0f);
         v1.normal = glm::vec3(0.0f, -1.0f, 0.0f);
-        vertex_buffer.emplace_back(v1);
-        vertex_buffer.emplace_back(v2);
-        vertex_buffer.emplace_back(v3);
+        vertex_data.emplace_back(v1);
+        vertex_data.emplace_back(v2);
+        vertex_data.emplace_back(v3);
 
-        for (auto& v : vertex_buffer) v.color = color;
+        for (auto& v : vertex_data) v.color = color;
     }
 
 private:
@@ -227,7 +227,7 @@ public:
 
         auto vertices = GetVertices(radius, height, segment);
         auto indices = GetIndices(segment);
-        vertex_buffer.clear();
+        vertex_data.clear();
         for (int i = 0; i < 2 * segment; i++) {
             ShapeVertex v1, v2, v3;
             v1 = vertices[indices[3 * i]];
@@ -236,9 +236,9 @@ public:
             v1.normal = i % 2 == 0 ? glm::vec3(0.0f, -1.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
             v2.normal = v1.normal;
             v3.normal = v1.normal;
-            vertex_buffer.emplace_back(v1);
-            vertex_buffer.emplace_back(v2);
-            vertex_buffer.emplace_back(v3);
+            vertex_data.emplace_back(v1);
+            vertex_data.emplace_back(v2);
+            vertex_data.emplace_back(v3);
         }
 
         for (int i = 2 * segment; i < 4 * segment; i++) {
@@ -249,12 +249,12 @@ public:
             v1.normal = OneNormal(v1.position);
             v2.normal = OneNormal(v2.position);
             v3.normal = OneNormal(v3.position);
-            vertex_buffer.emplace_back(v1);
-            vertex_buffer.emplace_back(v2);
-            vertex_buffer.emplace_back(v3);
+            vertex_data.emplace_back(v1);
+            vertex_data.emplace_back(v2);
+            vertex_data.emplace_back(v3);
         }
 
-        for (auto& v : vertex_buffer) v.color = color;
+        for (auto& v : vertex_data) v.color = color;
     }
 
 private:
@@ -352,16 +352,16 @@ public:
         auto vertices = GetVertices(lx, ly, lz);
         auto indices = GetIndices();
         auto normals = GetNormals();
-        vertex_buffer.resize(indices.size());
+        vertex_data.resize(indices.size());
         for (int i = 0; i < indices.size(); i++) {
-            vertex_buffer[i].position = vertices[indices[i]].position;
-            vertex_buffer[i].normal =  normals[i / 6]; // 6 vertices share the same normal
-            vertex_buffer[i].color = color; // default color
+            vertex_data[i].position = vertices[indices[i]].position;
+            vertex_data[i].normal =  normals[i / 6]; // 6 vertices share the same normal
+            vertex_data[i].color = color; // default color
         }
     }
 
-    std::vector<Vertex> GetVertices(float lx_, float ly_, float lz_) {
-        std::vector<Vertex> vertices;
+    std::vector<ShapeVertex> GetVertices(float lx_, float ly_, float lz_) {
+        std::vector<ShapeVertex> vertices;
         vertices.resize(8);
         vertices[0].position = glm::vec3(-lx_ / 2, 0, lz_ / 2);
         vertices[1].position = glm::vec3(lx_ / 2, 0, lz_ / 2);

@@ -13,57 +13,37 @@
 #include "FrameBuffer.h"
 
 
-class PipelineBase{
+class Pipeline {
 public:
-    PipelineBase() {}
+    Pipeline(int thread_num): thread_num(thread_num), shader_io_group(thread_num) {}
 
-    virtual ~PipelineBase() {}
+    Pipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader, int thread_num)
+    : vertex_shader(vertex_shader), fragment_shader(fragment_shader), thread_num(thread_num),
+      shader_io_group(thread_num, vertex_shader, fragment_shader) {}
+
+    void BoundShader(VertexShader* vertex_shader, FragmentShader* fragment_shader){
+        this->vertex_shader = vertex_shader;
+        this->fragment_shader = fragment_shader;
+        shader_io_group.BoundShader(vertex_shader, fragment_shader);
+    }
+
+    void BoundVertexBuffer(const std::vector<VertexShader::InputWrapper>& vertex_buffer){
+        this->vertex_buffer = &vertex_buffer;
+    }
 
     // render the pipeline
     // @param[in] frame_buffer  frame buffer
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
-    virtual void Render(FrameBuffer* frame_buffer, int thread_num = 1, bool use_oit = false) = 0;
-};
-
-
-template <class VS, class FS>
-class Pipeline: public PipelineBase{
-public:
-    Pipeline() {}
-
-    Pipeline(VS* vertex_shader, FS* fragment_shader)
-        : vertex_shader(vertex_shader), fragment_shader(fragment_shader) {}
-
-    ~Pipeline() {}
-
-    void BoundVertexShader(VS* vertex_shader){
-        this->vertex_shader = vertex_shader;
-    }
-
-    void BoundFragmentShader(FS* fragment_shader){
-        this->fragment_shader = fragment_shader;
-    }
-
-    void BoundShader(VS* vertex_shader, FS* fragment_shader){
-        this->vertex_shader = vertex_shader;
-        this->fragment_shader = fragment_shader;
-    }
-
-    void BoundVertexBuffer(const std::vector<typename VS::Input>& vertex_buffer){
-        this->vertex_buffer = &vertex_buffer;
-    }
-
-    virtual void Render(FrameBuffer* frame_buffer, int thread_num = 1, bool use_oit = false) override {
+    void Render(FrameBuffer* frame_buffer, bool use_oit = false) {
         // RenderSplit(frame_buffer, thread_num, use_oit);
-        RenderFetch(frame_buffer, thread_num, use_oit);
+        RenderFetch(frame_buffer, use_oit);
     }
 
     // render the pipeline,
     // using paralleling method of trivial splitting vertex buffer equally
     // @param[in] frame_buffer  frame buffer
-    // @param[in] thread_num  number of threads to render the pipeline
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
-    void RenderSplit(FrameBuffer* frame_buffer, int thread_num = 1, bool use_oit = false) {
+    void RenderSplit(FrameBuffer* frame_buffer, bool use_oit = false) {
         assert(vertex_buffer->size() % 3 == 0);
 
         // if single thread, do it directly
@@ -97,9 +77,8 @@ public:
     // render the pipeline,
     // using paralleling method of atomic fetching vertex buffer by threads
     // @param[in] frame_buffer  frame buffer
-    // @param[in] thread_num  number of threads to render the pipeline
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored when rendering
-    void RenderFetch(FrameBuffer* frame_buffer, int thread_num = 1, bool use_oit = false) {
+    void RenderFetch(FrameBuffer* frame_buffer, bool use_oit = false) {
         assert(vertex_buffer->size() % 3 == 0);
 
         // if single thread, do it directly
@@ -159,30 +138,33 @@ private:
         int width = frame_buffer->GetWidth();
         int height = frame_buffer->GetHeight();
 
-        const typename VS::Input& vs_input_v1 = vertex_buffer->at(idx);
-        const typename VS::Input& vs_input_v2 = vertex_buffer->at(idx + 1);
-        const typename VS::Input& vs_input_v3 = vertex_buffer->at(idx + 2);
+        const auto& vs_input_v0 = vertex_buffer->at(idx);
+        const auto& vs_input_v1 = vertex_buffer->at(idx + 1);
+        const auto& vs_input_v2 = vertex_buffer->at(idx + 2);
+        auto& vs_output = shader_io_group.GetAt(thread_id)->vs_output;
+        auto& fs_input = shader_io_group.GetAt(thread_id)->fs_input;
+        auto& fs_output = shader_io_group.GetAt(thread_id)->fs_output;
         
         // call vertex-shader
-        typename VS::Output vs_output_v1 = vertex_shader->Call(vs_input_v1);
-        typename VS::Output vs_output_v2 = vertex_shader->Call(vs_input_v2);
-        typename VS::Output vs_output_v3 = vertex_shader->Call(vs_input_v3);
+        vertex_shader->Call(vs_input_v0, vs_output[0]);
+        vertex_shader->Call(vs_input_v1, vs_output[1]);
+        vertex_shader->Call(vs_input_v2, vs_output[2]);
 
         // save w for perspective division
-        float w1 = vs_output_v1.__position__.w;
-        float w2 = vs_output_v2.__position__.w;
-        float w3 = vs_output_v3.__position__.w;
+        float w0 = vs_output[0].__position__.w;
+        float w1 = vs_output[1].__position__.w;
+        float w2 = vs_output[2].__position__.w;
 
         // map to clipping space, where (-1, 1) is visible region
-        glm::vec4 screen_pos_v1 = vs_output_v1.__position__ / w1;
-        glm::vec4 screen_pos_v2 = vs_output_v2.__position__ / w2;
-        glm::vec4 screen_pos_v3 = vs_output_v3.__position__ / w3;
+        glm::vec4 screen_pos_v0 = vs_output[0].__position__ / w0;
+        glm::vec4 screen_pos_v1 = vs_output[1].__position__ / w1;
+        glm::vec4 screen_pos_v2 = vs_output[2].__position__ / w2;
 
         // calculate bounding box
-        int pixel_min_x = Coord2Pixel(std::min(screen_pos_v1.x, std::min(screen_pos_v2.x, screen_pos_v3.x)), width);
-        int pixel_max_x = Coord2Pixel(std::max(screen_pos_v1.x, std::max(screen_pos_v2.x, screen_pos_v3.x)), width);
-        int pixel_min_y = Coord2Pixel(std::min(screen_pos_v1.y, std::min(screen_pos_v2.y, screen_pos_v3.y)), height);
-        int pixel_max_y = Coord2Pixel(std::max(screen_pos_v1.y, std::max(screen_pos_v2.y, screen_pos_v3.y)), height);
+        int pixel_min_x = Coord2Pixel(std::min(screen_pos_v0.x, std::min(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_max_x = Coord2Pixel(std::max(screen_pos_v0.x, std::max(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_min_y = Coord2Pixel(std::min(screen_pos_v0.y, std::min(screen_pos_v1.y, screen_pos_v2.y)), height);
+        int pixel_max_y = Coord2Pixel(std::max(screen_pos_v0.y, std::max(screen_pos_v1.y, screen_pos_v2.y)), height);
 
         // clip bounding box
         pixel_min_x = std::max(0, pixel_min_x);
@@ -200,9 +182,9 @@ private:
 
                 // barycentric coordinates
                 glm::vec3 barycentric = glm::inverse(
-                    glm::mat3x3(screen_pos_v1.x, screen_pos_v1.y, 1.0f,
-                                screen_pos_v2.x, screen_pos_v2.y, 1.0f,
-                                screen_pos_v3.x, screen_pos_v3.y, 1.0f)
+                    glm::mat3x3(screen_pos_v0.x, screen_pos_v0.y, 1.0f,
+                                screen_pos_v1.x, screen_pos_v1.y, 1.0f,
+                                screen_pos_v2.x, screen_pos_v2.y, 1.0f)
                 ) * glm::vec3(screen_x, screen_y, 1.0f);
                 if (barycentric.x < 0 || barycentric.y < 0 || barycentric.z < 0){
                     continue;
@@ -210,23 +192,21 @@ private:
                 /*********************************************************************************/
 
                 // perspective division
-                barycentric /= glm::vec3(w1, w2, w3);
+                barycentric /= glm::vec3(w0, w1, w2);
 
                 // perspective-correct interpolation
-                typename FS::Input fs_input = fragment_shader->Interpolate(
-                    vs_output_v1, vs_output_v2, vs_output_v3, barycentric);
+                fragment_shader->Interpolate(
+                    vs_output[0], vs_output[1], vs_output[2], barycentric, fs_input);
                 float screen_depth = fragment_shader->InterpolateAttr(
-                    screen_pos_v1.z, screen_pos_v2.z, screen_pos_v3.z, barycentric);
+                    screen_pos_v0.z, screen_pos_v1.z, screen_pos_v2.z, barycentric);
 
-                // depth test
-                if (screen_depth < -1.0f || screen_depth > 1.0f){
-                    continue;
-                }
+                // depth clipping
+                if (screen_depth < -1.0f || screen_depth > 1.0f) continue;
 
                 // write color to frame buffer
                 if (frame_buffer->DepthTestAt(screen_depth, x, y)){ // get max depth, note that z-axis points out of the screen
                     // call fragment-shader
-                    typename FS::Output fs_output = fragment_shader->Call(fs_input);
+                    fragment_shader->Call(fs_input, fs_output);
 
                     if constexpr (use_oit)
                         frame_buffer->HandleNewFragment_T(fs_output.__color__, screen_depth, x, y, thread_id);
@@ -248,10 +228,12 @@ private:
     }
 
 private:
-    const std::vector<typename VS::Input>* vertex_buffer;
+    const std::vector<VertexShader::InputWrapper>* vertex_buffer;
+    ShaderIOGroup shader_io_group;
 
 public:
-    VS* vertex_shader = nullptr;
-    FS* fragment_shader = nullptr;
+    const int thread_num;
+    VertexShader* vertex_shader = nullptr;
+    FragmentShader* fragment_shader = nullptr;
 };
 

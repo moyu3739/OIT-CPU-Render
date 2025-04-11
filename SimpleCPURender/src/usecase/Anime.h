@@ -20,7 +20,6 @@
 class Anime: public Application {
     using MyVertexShader   = AnimeStyleVertexShader;
     using MyFragmentShader = AnimeStyleFragmentShader;
-    using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
 
 public:
     Anime(int width, int height): Application(width, height) {}
@@ -31,8 +30,8 @@ public:
         LoadModel("Babala body", "asset/obj/Babala/body.obj", "asset/texture/Babala/body.png");
         LoadVertexBuffer();
 
-        // RenderAnimation(10.0f);
-        RenderFrame();
+        RenderAnimation(10.0f);
+        // RenderFrame();
     }
 
     virtual void LoadVertexBuffer() override;
@@ -40,14 +39,15 @@ public:
     virtual std::unique_ptr<Engine> InitEngine(int render_thread_num, int blend_thread_num,
                        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY) override;
 
-    std::unique_ptr<MyPipeline> InitPipeline();
+    std::unique_ptr<Pipeline> InitPipeline(int render_thread_num);
 
     virtual void UpdateTransform(const glm::mat4& transform) override {
         for (auto& vshader: vshaders) vshader->model = transform;
     }
 
 public:
-    std::unordered_map<std::string, std::vector<typename MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
+    std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_datas;
+    std::unordered_map<std::string, std::vector<VertexShader::InputWrapper>> vertex_buffers; // <model_name, vertex_buffer>
     std::vector<std::unique_ptr<MyVertexShader>> vshaders;
     std::vector<std::unique_ptr<MyFragmentShader>> fshaders;
 };

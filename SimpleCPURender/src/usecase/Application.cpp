@@ -158,7 +158,7 @@ void Application::RenderAnimation(float time_limit) {
 
         float r = 2 * 3.14159 * t / T;
         float y = Y * sin(r);
-        UpdateTransform(GetModelTransform(glm::vec3(0.0f, 0.0f, 0.0f), r, 1.0f));
+        UpdateTransform(GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.0f));
 
         // render and show
         float start_render = tm.ReadTimer();

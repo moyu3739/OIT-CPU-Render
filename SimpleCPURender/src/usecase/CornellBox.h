@@ -19,7 +19,6 @@
 class CornellBox: public Application {
     using MyVertexShader   = ShapeVertexShader;
     using MyFragmentShader = ShapeFragmentShader;
-    using MyPipeline = Pipeline<MyVertexShader, MyFragmentShader>;
 
 public:
     CornellBox(int width, int height, int N_shapes, bool combined)
@@ -27,8 +26,9 @@ public:
 
     virtual void Run() override {
         LoadVertexBuffer();
-        // RenderAnimation(100.0f);
-        RenderFrame();
+
+        RenderAnimation(5.0f);
+        // RenderFrame();
     }
 
     void LoadVertexBuffer() override {
@@ -75,7 +75,8 @@ public:
     std::shared_ptr<glm::mat4> global_model;
     std::vector<std::unique_ptr<Shape>> shapes;
 
-    std::unordered_map<std::string, std::vector<typename MyVertexShader::Input>> vertex_buffers; // <model_name, vertex_buffer>
+    std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_datas;
+    std::unordered_map<std::string, std::vector<VertexShader::InputWrapper>> vertex_buffers; // <model_name, vertex_buffer>
     std::vector<std::unique_ptr<MyVertexShader>> vshaders;
     std::vector<std::unique_ptr<MyFragmentShader>> fshaders;
 };
