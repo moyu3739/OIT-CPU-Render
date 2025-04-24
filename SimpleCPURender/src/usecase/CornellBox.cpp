@@ -2,9 +2,14 @@
 #include "Timer.h"
 
 
-std::unique_ptr<Engine> CornellBox::InitEngine(int render_thread_num, int blend_thread_num,
-                                          const glm::vec3& bg_color, float bg_depth){
-    auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num, bg_color, bg_depth, true);
+std::unique_ptr<Engine> CornellBox::InitEngine(
+        int render_thread_num, int blend_thread_num,
+        const glm::vec3& bg_color, float bg_depth,
+        int parallel_level, bool enable_oit,
+        bool use_backward_pplist, float backward_blend_alpha_threshold) {
+
+    auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num,
+        bg_color, bg_depth, parallel_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
     global_model = std::make_shared<glm::mat4>(
         GetModelTransform(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f));
 
@@ -22,7 +27,7 @@ std::unique_ptr<Engine> CornellBox::InitEngine(int render_thread_num, int blend_
         else {
             glm::vec3 t_min(-1.5f);
             glm::vec3 t_max(1.5f);
-            vshader->model = GetModelTransform(RandomVec3(t_min, t_max), rotation, scale);
+            vshader->model = GetModelTransform(random_gen.RandomVec3(t_min, t_max), rotation, scale);
         }
         vshader->global_model = global_model;
 
@@ -58,7 +63,7 @@ std::unique_ptr<Engine> CornellBox::InitEngine(int render_thread_num, int blend_
         fshader->light_pos = light_pos;
 
         //////// load shaders
-        engine->pipeline_manager->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
+        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
         vshaders.emplace_back(std::move(vshader));
         fshaders.emplace_back(std::move(fshader));
     }
@@ -71,27 +76,27 @@ void CornellBox::LoadVertexBufferShapesDivided() {
         std::string name = "shape " + std::to_string(i);
         std::unique_ptr<Shape> shape;
 
-        glm::vec3 color = RandomVec3(glm::vec3(0.5f), glm::vec3(1.0f));
-        switch(RandomInt(0, 3)) {
+        glm::vec3 color = random_gen.RandomVec3(glm::vec3(0.5f), glm::vec3(1.0f));
+        switch(random_gen.RandomInt(0, 3)) {
             case 0: { // sphere
-                float r = RandomFloat(0.1f, 0.2f);
+                float r = random_gen.RandomFloat(0.1f, 0.2f);
                 shape = std::make_unique<Sphere>(r, 32, color);
                 break;
             }
             case 1: { // cylinder
-                float r = RandomFloat(0.1f, 0.2f);
-                float h = RandomFloat(0.2f, 0.4f);
+                float r = random_gen.RandomFloat(0.1f, 0.2f);
+                float h = random_gen.RandomFloat(0.2f, 0.4f);
                 shape = std::make_unique<Cylinder>(r, h, 32, color);
                 break;
             }
             case 2: { // box
-                glm::vec3 size = RandomVec3(glm::vec3(0.2f), glm::vec3(0.4f));
+                glm::vec3 size = random_gen.RandomVec3(glm::vec3(0.2f), glm::vec3(0.4f));
                 shape = std::make_unique<Box>(size, color);
                 break;
             }
             case 3: { // cone
-                float r = RandomFloat(0.1f, 0.2f);
-                float h = RandomFloat(0.2f, 0.4f);
+                float r = random_gen.RandomFloat(0.1f, 0.2f);
+                float h = random_gen.RandomFloat(0.2f, 0.4f);
                 shape = std::make_unique<Cone>(r, h, 64, color);
                 break;
             }
@@ -116,7 +121,7 @@ void CornellBox::LoadVertexBufferShapesCombined() {
 
     for (auto& vertex_data: vertex_datas) {
         auto& vertices = vertex_data.second;
-        glm::vec3 translation = RandomVec3(glm::vec3(-1.5f), glm::vec3(1.5f));
+        glm::vec3 translation = random_gen.RandomVec3(glm::vec3(-1.5f), glm::vec3(1.5f));
         for (auto& vertex: vertices) vertex.position += translation;
     }
 

@@ -134,12 +134,12 @@ void Application::ResetNormal(const std::string& model_name, bool left_handed){
 }
 
 void Application::RenderFrame() {
-    auto engine = InitEngine(16, 16, glm::vec3(1.0f));
-    engine->RenderAndShow(0);
+    auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 0, true);
+    engine->RenderSerial(0);
 }
 
-void Application::RenderAnimation(float time_limit) {
-    auto engine = InitEngine(16, 16, glm::vec3(1.0f));
+void Application::RenderAnimation(float lasting) {
+    auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 4, true, true, 0.95);
 
     const float T = 3.0f;
     const float Y = 0.5f;
@@ -154,7 +154,7 @@ void Application::RenderAnimation(float time_limit) {
     tm.StartTimer();
     while(1){
         float t = tm.ReadTimer();
-        if (t > time_limit) break;
+        if (t > lasting) break;
 
         float r = 2 * 3.14159 * t / T;
         float y = Y * sin(r);
@@ -162,7 +162,7 @@ void Application::RenderAnimation(float time_limit) {
 
         // render and show
         float start_render = tm.ReadTimer();
-        engine->PipelineRenderAndShow(1);
+        engine->RenderParallel();
         float duration_render = tm.ReadTimer() - start_render;
         total_render_time += duration_render;
 

@@ -9,15 +9,37 @@
 #include "FrameBuffer.h"
 
 
-class Displayer{
+class Displayer {
 public:
     Displayer() {}
 
-    ~Displayer() {
+    virtual ~Displayer() {
         cv::destroyAllWindows();
     }
 
-    void LoadFromImageFile(const std::string& img_path) {
+    virtual int GetBufferNumber() const = 0;
+
+    virtual void LoadFromImageFile(const std::string& img_path) = 0;
+
+    virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) = 0;
+
+    virtual void Show(int delay = 1) = 0;
+
+    virtual void RotateBuffer() = 0;
+};
+
+
+class SingleBufferDisplayer: public Displayer {
+public:
+    SingleBufferDisplayer() {}
+
+    virtual ~SingleBufferDisplayer() {}
+
+    virtual int GetBufferNumber() const override {
+        return 1;
+    }
+
+    virtual void LoadFromImageFile(const std::string& img_path) override {
         buffer = cv::imread(img_path);
     }
 
@@ -34,7 +56,7 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) {
+    virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) override {
         LoadFromFrameBuffer8UC3(frame_buffer);
     }
 
@@ -55,31 +77,36 @@ public:
         }
     }
 
-    void Show(int delay = 1) {
+    virtual void Show(int delay = 1) override {
         cv::imshow("Rendered Image", buffer);
         cv::waitKey(delay);
     }
+
+    virtual void RotateBuffer() override {}
 
 private:
     cv::Mat buffer;
 };
 
 
-
-class DoubleBufferDisplayer{
+class DoubleBufferDisplayer: public Displayer {
 public:
     DoubleBufferDisplayer() {
         front_buffer = new cv::Mat(1, 1, CV_8UC3); // dummy buffer for displayable initialization
         back_buffer  = new cv::Mat(1, 1, CV_8UC3); // dummy buffer for displayable initialization
     }
 
-    ~DoubleBufferDisplayer() {
+    virtual ~DoubleBufferDisplayer() {
         delete front_buffer;
         delete back_buffer;
         cv::destroyAllWindows();
     }
 
-    void LoadFromImageFile(const std::string& img_path) {
+    virtual int GetBufferNumber() const override {
+        return 2;
+    }
+
+    virtual void LoadFromImageFile(const std::string& img_path) override {
         *back_buffer = cv::imread(img_path);
     }
 
@@ -96,7 +123,7 @@ public:
         }
     }
 
-    void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) {
+    virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) override {
         LoadFromFrameBuffer8UC3(frame_buffer);
     }
 
@@ -105,8 +132,8 @@ public:
         int height = frame_buffer->GetHeight();
         *back_buffer = cv::Mat(height, width, CV_8UC3);
         
-        for(int y = 0; y < height; y++){ // here value of (row, col) satisfies right-top corner
-            for(int x = 0; x < width; x++){
+        for(int y = 0; y < height; y++) { // here value of (row, col) satisfies right-top corner
+            for(int x = 0; x < width; x++) {
                 const glm::vec3& color = frame_buffer->GetColorAt(x, y);
                 back_buffer->at<cv::Vec3b>(height - 1 - y, x) = cv::Vec3b(
                     static_cast<unsigned char>(color.b * 255),
@@ -117,9 +144,13 @@ public:
         }
     }
 
-    void Show(int delay = 1) {
+    virtual void Show(int delay = 1) override {
         cv::imshow("Rendered Image", *front_buffer);
         cv::waitKey(delay);
+    }
+
+    virtual void RotateBuffer() override {
+        SwapBuffer();
     }
 
     void SwapBuffer() {

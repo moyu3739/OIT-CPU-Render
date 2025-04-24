@@ -24,9 +24,14 @@ void Anime::LoadVertexBuffer() {
     }
 }
 
-std::unique_ptr<Engine> Anime::InitEngine(int render_thread_num, int blend_thread_num,
-                                          const glm::vec3& bg_color, float bg_depth) {
-    auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num, bg_color, bg_depth, true);
+std::unique_ptr<Engine> Anime::InitEngine(
+        int render_thread_num, int blend_thread_num,
+        const glm::vec3& bg_color, float bg_depth, 
+        int parallel_level, bool enable_oit,
+        bool use_backward_pplist, float backward_blend_alpha_threshold) {
+
+    auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num,
+        bg_color, bg_depth, parallel_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
 
     //////// set vertex-shader parameters
     auto vshader = std::make_unique<MyVertexShader>();
@@ -70,7 +75,7 @@ std::unique_ptr<Engine> Anime::InitEngine(int render_thread_num, int blend_threa
         fshader->texture = obj.texture.get();
         
         //////// load shaders
-        engine->pipeline_manager->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
+        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
         fshaders.emplace_back(std::move(fshader));
     }
     vshaders.emplace_back(std::move(vshader));

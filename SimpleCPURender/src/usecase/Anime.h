@@ -36,8 +36,11 @@ public:
 
     virtual void LoadVertexBuffer() override;
 
-    virtual std::unique_ptr<Engine> InitEngine(int render_thread_num, int blend_thread_num,
-                       const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY) override;
+    virtual std::unique_ptr<Engine> InitEngine(
+        int render_thread_num, int blend_thread_num,
+        const glm::vec3& bg_color, float bg_depth = INFINITY, 
+        int parallel_level = 1, bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) override;
 
     std::unique_ptr<Pipeline> InitPipeline(int render_thread_num);
 

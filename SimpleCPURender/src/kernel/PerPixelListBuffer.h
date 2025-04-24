@@ -18,7 +18,7 @@ public:
         pplist_buffer = new PerPixelList[width * height];
     }
 
-    ~PerPixelListBuffer() {
+    virtual ~PerPixelListBuffer() {
         Clear();
         delete[] pplist_buffer;
     }
@@ -41,7 +41,29 @@ public:
         BlendAt(base_color, base_depth, y * width + x);
     }
 
-    void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) {
+    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) = 0;
+
+    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const = 0;
+
+protected:
+    const int width;
+    const int height;
+    PerPixelList* pplist_buffer;
+    ListAllocatorGroup allocator_group;
+};
+
+
+class ForwardPerPixelListBuffer: public PerPixelListBuffer {
+public:
+    ForwardPerPixelListBuffer(int width, int height, int allocator_num)
+    : PerPixelListBuffer(width, height, allocator_num) {}
+
+    virtual ~ForwardPerPixelListBuffer() {}
+
+    ForwardPerPixelListBuffer(const ForwardPerPixelListBuffer&) = delete;
+    ForwardPerPixelListBuffer& operator=(const ForwardPerPixelListBuffer&) = delete;
+
+    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) override {
         auto& pplist = pplist_buffer[idx];
 
         // if `pplist` is empty or `fragment.depth` is larger than the head node's depth,
@@ -70,7 +92,7 @@ public:
         }
     }
 
-    void BlendAt(glm::vec3& base_color, float base_depth, int idx) const {
+    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const override {
         const auto& pplist = pplist_buffer[idx];
 
         // skip fragments with depth larger than `base_depth`
@@ -80,11 +102,70 @@ public:
         for (; iter != pplist.End(); ++iter)
             base_color = base_color * (1.0f - iter->color.a) + iter->color.a * glm::vec3(iter->color);
     }
+};
+
+
+class BackwardPerPixelListBuffer: public PerPixelListBuffer {
+public:
+    // @param[in] blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    //              reaches this threshold, which means the deeper fragments will be ignored.
+    BackwardPerPixelListBuffer(int width, int height, int allocator_num, float blend_alpha_threshold = 1.0f)
+    : PerPixelListBuffer(width, height, allocator_num), blend_alpha_threshold(blend_alpha_threshold) {}
+
+    virtual ~BackwardPerPixelListBuffer() {}
+
+    BackwardPerPixelListBuffer(const BackwardPerPixelListBuffer&) = delete;
+    BackwardPerPixelListBuffer& operator=(const BackwardPerPixelListBuffer&) = delete;
+
+    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) override {
+        auto& pplist = pplist_buffer[idx];
+
+        // if `pplist` is empty or `fragment.depth` is less than the head node's depth,
+        // keep trying inserting at head
+        while (pplist.IsEmpty() || pplist.Begin()->depth > fragment.depth) {
+            if (pplist.TryInsertHead(pplist.Begin(), fragment, allocator_group.GetAllocator(thread_id))) return;
+        }
+
+        // find the position to insert `fragment`
+        auto prev = pplist.Begin();
+        auto post = pplist.Begin().Next();
+        while (true){
+            // if `post` not at end, and `post->depth < fragment.depth`, move next
+            if (post != pplist.End() && post->depth < fragment.depth){
+                prev = post;
+                ++post;
+                continue;
+            }
+            // otherwise insert `fragment` between `prev` and `post`
+            bool res = pplist.TryInsertAt(prev, post, fragment, allocator_group.GetAllocator(thread_id));
+            if (res) return;
+            else{
+                post = prev.Next(); // get the next node again
+                continue; // retry
+            }
+        }
+    }
+
+    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const override {
+        const auto& pplist = pplist_buffer[idx];
+        // blend color
+        glm::vec3 color_sum(0.0f);
+        float alpha_sum = 0.0f;
+        for (auto iter = pplist.Begin(); iter != pplist.End(); ++iter) {
+            // blend until the depth of the fragment reaches `base_depth`,
+            // or the alpha value of blended fragments reaches `blend_alpha_threshold`
+            if (iter->depth > base_depth || alpha_sum > blend_alpha_threshold) break;
+
+            // blend color in the list
+            color_sum = color_sum + iter->color.a * glm::vec3(iter->color) * (1.0f - alpha_sum);
+            alpha_sum = alpha_sum + iter->color.a * (1.0f - alpha_sum);
+        }
+
+        // blend base color
+        base_color = color_sum + base_color * (1.0f - alpha_sum); // alpha value of base color is 1.0f
+    }
 
 private:
-    const int width;
-    const int height;
-    PerPixelList* pplist_buffer;
-    ListAllocatorGroup allocator_group;
+    float blend_alpha_threshold;
 };
 

@@ -15,74 +15,6 @@
 #include "Engine.h"
 
 
-// // void CircularRender(Application& app) {
-// //     app.InitPipeline();
-
-// //     const float T = 3.0f;
-// //     const float Y = 1.0f;
-
-// //     Timer tm;
-// //     float total_clear_time = 0.0f;
-// //     float total_render_time = 0.0f;
-// //     float total_load_time = 0.0f;
-// //     float total_show_time = 0.0f;
-
-// //     float last_frame = 0.0f;
-// //     int frame_count = 0;
-
-// //     tm.StartTimer();
-// //     while(1){
-// //         float t = tm.ReadTimer();
-
-// //         float r = 2 * 3.14159 * t / T;
-// //         float y = Y * sin(r);
-// //         // float s = 1.0f + 0.3f * sin(r);
-// //         app.vshaders[0]->model = app.GetModelTransform(glm::vec3(0.0f, y, 0.0f), r, 1.5f);
-
-// //         // clear the frame buffer
-// //         float start_clear = tm.ReadTimer();
-// //         app.pipeline_manager.ClearFrameBuffer(glm::vec3(1.0f));
-// //         float duration_clear = tm.ReadTimer() - start_clear;
-// //         total_clear_time += duration_clear;
-
-// //         // render
-// //         float start_render = tm.ReadTimer();
-// //         app.pipeline_manager.Render();
-// //         float duration_render = tm.ReadTimer() - start_render;
-// //         total_render_time += duration_render;
-// //         // load buffer
-// //         float start_load = tm.ReadTimer();
-// //         app.displayer.LoadFromFrameBuffer(app.pipeline_manager.GetFrameBuffer());
-// //         float duration_load = tm.ReadTimer() - start_load;
-// //         total_load_time += duration_load;
-// //         // show
-// //         float start_show = tm.ReadTimer();
-// //         app.displayer.Show();
-// //         float duration_show = tm.ReadTimer() - start_show;
-// //         total_show_time += duration_show;
-
-// //         // 计算帧率
-// //         frame_count++;
-// //         float now = tm.ReadTimer();
-// //         float duration_frame = now - last_frame;
-// //         last_frame = now;
-
-// //         system("cls"); // 清空缓冲区
-// //         printf("Clear time:\t%.1f ms\n", duration_clear * 1000);
-// //         printf("Render time:\t %.1f ms\n", duration_render * 1000);
-// //         printf("Load time:\t%.1f ms\n", duration_load * 1000);
-// //         printf("Show time:\t%.1f ms\n", duration_show * 1000);
-// //         printf("FPS:\t%.1f fps\n", 1.0f / duration_frame);
-// //         printf("Average clear time:\t%.1f ms\n", total_clear_time * 1000 / frame_count);
-// //         printf("Average render time:\t%.1f ms\n", total_render_time * 1000 / frame_count);
-// //         printf("Average load time:\t%.1f ms\n", total_load_time * 1000 / frame_count);
-// //         printf("Average show time:\t%.1f ms\n", total_show_time * 1000 / frame_count);
-// //         printf("Average FPS:\t\t%.1f fps\n", frame_count / now);
-// //     }
-// // }
-
-
-
 // void PipelinedRenderCustom0(Anime& app, float time_limit) {
 //     const int render_thread_num = 16;
 //     const int blend_thread_num  = 16;
@@ -730,36 +662,13 @@
 //     }
 // }
 
-// void RenderFrame(Application& app) {
-//     auto engine = app.InitEngine(16, 16);
-//     engine->RenderAndShow(0);
-// }
-
-
-// // int main(){
-// //     // Application app(1200, 900);
-// //     Anime app(900, 900);
-
-// //     // app.LoadModel("Ankila", "asset/obj/Ankila.obj", "asset/texture/Ankila.png");
-// //     app.LoadModel("Babala hair", "asset/obj/Babala/hair.obj", "asset/texture/Babala/hair.png");
-// //     app.LoadModel("Babala face", "asset/obj/Babala/face.obj", "asset/texture/Babala/face.png");
-// //     app.LoadModel("Babala body", "asset/obj/Babala/body.obj", "asset/texture/Babala/body.png");
-// //     // app.ResetNormalAll();
-// //     app.LoadVertexBuffer();
-
-// //     // RenderFrame(app);
-// //     // PipelinedRender(app, 5.0f);
-// //     PipelinedRenderCustom4(app, 50.0f);
-
-// //     return 0;
-// // }
 
 
 int main() {
     Anime app = Anime(800, 800);
     app.Run();
 
-    // CornellBox app = CornellBox(800, 800, 200, true);
+    // CornellBox app = CornellBox(800, 800, 200, true, 1919810);
     // app.Run();
 
     // Intensity app = Intensity(800, 800);

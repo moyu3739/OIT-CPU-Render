@@ -18,15 +18,28 @@ private:
 public:
     // @param[in] width  width of the frame buffer
     // @param[in] height  height of the frame buffer
+    // @param[in] allocator_num  number of allocators for per-pixel linked list buffer
     // @param[in] enable_oit  whether to enable order-independent transparency;
-    //                        if false, the frame buffer will always ignore alpha channel,
-    //                        which means fragment will be covered whenever it is in front of the existing fragment.
+    //              if false, the frame buffer will always ignore alpha channel,
+    //              which means fragment will be covered whenever it is in front of the existing fragment.
+    // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
+    //              if false, the frame buffer will use forward per-pixel linked list buffer.
+    //              (only valid when `enable_oit` is true)
+    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    //              reaches this threshold, which means the deeper fragments will be ignored.
+    //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
     FrameBuffer(int width, int height, int allocator_num,
                 const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-                bool enable_oit = false)
+                bool enable_oit = false,
+                bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f)
         : width(width), height(height), enable_oit(enable_oit) {
         pixel_buffer = new PixelBuffer(width, height, bg_color, bg_depth);
-        if (enable_oit) pplist_buffer = new PerPixelListBuffer(width, height, allocator_num);
+        if (enable_oit) {
+            if (use_backward_pplist)
+                pplist_buffer = new BackwardPerPixelListBuffer(width, height, allocator_num, backward_blend_alpha_threshold);
+            else
+                pplist_buffer = new ForwardPerPixelListBuffer(width, height, allocator_num);
+        }
         Clear();
     }
 
@@ -43,7 +56,7 @@ public:
         pixel_buffer->Clear();
 
         if (pplist_buffer_touched) {
-            pplist_buffer->Clear();  
+            pplist_buffer->Clear();
             pplist_buffer_touched = false;
         }
     }

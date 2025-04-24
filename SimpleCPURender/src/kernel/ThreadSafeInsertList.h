@@ -39,19 +39,16 @@ public:
             return Iterator(ptr->next.load(std::memory_order_acquire));
         }
     
-        // 解引用操作符
         T& operator*() const {
             return ptr->data;
         }
 
-        // 成员访问操作符
         T* operator->() const {
             return &(ptr->data);
         }
     
-        // 前向迭代操作符
         Iterator& operator++() {
-            // 使用 acquire 语义读取最新 next
+            // use acquire semantics to read the next pointer
             ptr = ptr->next.load(std::memory_order_acquire);
             return *this;
         }
@@ -62,18 +59,16 @@ public:
             return old;
         }
     
-        // 不等比较
         bool operator!=(const Iterator& other) const {
             return ptr != other.ptr;
         }
 
-        // 等比较
         bool operator==(const Iterator& other) const {
             return ptr == other.ptr;
         }
 
     private:
-        Node* ptr;  // 当前节点指针
+        Node* ptr;  // pointer to current node
     };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -153,13 +148,13 @@ public:
         head.store(nullptr, std::memory_order_relaxed);
     }
 
-    // 获取起始迭代器
+    // begin iterator
     Iterator Begin() const{
-        // 使用 acquire 语义读取头节点
+        // use acquire semantics to read the head pointer
         return Iterator(head.load(std::memory_order_acquire));
     }
 
-    // 获取终止迭代器
+    // end iterator
     Iterator End() const{
         return Iterator(nullptr);
     }
@@ -185,24 +180,24 @@ private:
     void InsertAt(Node* prev_node, const T& val, Allocator* allocator){
         Node* new_node = CreateNode(val, allocator, allocator);
 
-        // 读取前驱节点的当前 next 指针（带 acquire 语义）
+        // read the current next pointer of the previous node (with acquire semantics)
         Node* curr_next = prev_node->next.load(std::memory_order_acquire);
     
         while (true) {
-            // 设置新节点的 next 为 curr_next（无需同步）
+            // set the next pointer of the new node to curr_next (no synchronization needed)
             new_node->next.store(curr_next, std::memory_order_relaxed);
     
-            // 尝试通过 CAS 更新前驱节点的 next
+            // try to update the next pointer of the previous node using CAS
             if (prev_node->next.compare_exchange_strong(
-                curr_next,         // 期望值：prev_node->next 应为 curr_next
-                new_node,          // 目标值：将其更新为 new_node
-                std::memory_order_release,  // 成功时的内存序：发布新节点
-                std::memory_order_acquire   // 失败时的内存序：获取当前 next 指针
+                curr_next,         // expected value: `prev_node->next` should be `curr_next`
+                new_node,          // target value: update `prev_node->next` to `new_node`
+                std::memory_order_release,  // memory order when successful: release the new node
+                std::memory_order_acquire   // memory order when failed: acquire the new node
             )) {
-                break; // CAS 成功，插入完成
+                break; // CAS succeeded, exit the loop
             }
 
-            // CAS 失败：其他线程修改了 prev_node->next，循环重试
+            // CAS failed: another thread modified `prev_node->next`, retry
         }
     }
 
