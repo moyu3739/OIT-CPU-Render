@@ -19,8 +19,6 @@ public:
 
     virtual int GetBufferNumber() const = 0;
 
-    virtual void LoadFromImageFile(const std::string& img_path) = 0;
-
     virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) = 0;
 
     virtual void Show(int delay = 1) = 0;
@@ -39,7 +37,7 @@ public:
         return 1;
     }
 
-    virtual void LoadFromImageFile(const std::string& img_path) override {
+    void LoadFromImageFile(const std::string& img_path) {
         buffer = cv::imread(img_path);
     }
 
@@ -106,7 +104,7 @@ public:
         return 2;
     }
 
-    virtual void LoadFromImageFile(const std::string& img_path) override {
+    void LoadFromImageFile(const std::string& img_path) {
         *back_buffer = cv::imread(img_path);
     }
 

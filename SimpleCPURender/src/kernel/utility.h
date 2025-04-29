@@ -62,3 +62,18 @@ inline std::vector<int> RangeSplit(int begin, int start, int n) {
     return res;
 }
 
+// map `coord`, from float(-1, 1) to int[0, `range`)
+inline int Screen2Pixel(float coord, int range){
+    return static_cast<int>((coord + 1.0f) * 0.5f * range);
+}
+
+// map `coord`, from float(-1, 1) to int[0, `range`)
+inline float Screen2PixelFloat(float coord, int range){
+    return (coord + 1.0f) * 0.5f * range;
+}
+
+// map `pixel`, from int[0, `range`) to float(-1, 1)
+inline float Pixel2Screen(int pixel, int range){
+    return (2.0f * pixel + 1.0f) / range - 1.0f;
+}
+

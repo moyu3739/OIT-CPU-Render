@@ -24,11 +24,17 @@ public:
     // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
-    Engine(int width, int height, int render_thread_num, int blend_thread_num,
-           const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-           int parallel_level = 1, bool enable_oit = false,
-           bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) {
-        this->parallel_level = parallel_level;
+    Engine(
+        int width, int height, int render_thread_num, int blend_thread_num,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        int parallel_level = 1, bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        pipeline_manager_exclusive(true),
+        framebuffer_manager_exclusive(true),
+        displayer_exclusive(true),
+        parallel_level(parallel_level)
+    {
         pipeline_manager = new PipelineManager(render_thread_num, blend_thread_num);
 
         switch(parallel_level) {
@@ -57,22 +63,78 @@ public:
                 assert(false);
                 break;
         }
-
-        self_created = true;
     }
 
-    Engine(PipelineManager* pipeline_manager, FrameBufferManager* frame_buffer_manager, Displayer* displayer)
-    : pipeline_manager(pipeline_manager),
-      frame_buffer_manager(frame_buffer_manager),
-      displayer(displayer),
-      self_created(false) {}
+    // @param[in] width  width of the frame buffer
+    // @param[in] height  height of the frame buffer
+    // @param[in] displayer  displayer to show the frame buffer
+    // @param[in] parallel_level  level of parallelism (0 - 4)
+    // @param[in] enable_oit  whether to enable order-independent transparency;
+    //              if false, the frame buffer will always ignore alpha channel,
+    //              which means fragment will be covered whenever it is in front of the existing fragment.
+    // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
+    //              if false, the frame buffer will use forward per-pixel linked list buffer.
+    //              (only valid when `enable_oit` is true)
+    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    //              reaches this threshold, which means the deeper fragments will be ignored.
+    //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
+    Engine(
+        int width, int height, int render_thread_num, int blend_thread_num, Displayer* displayer,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        int parallel_level = 1, bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        pipeline_manager_exclusive(true),
+        framebuffer_manager_exclusive(true),
+        displayer_exclusive(false),
+        parallel_level(parallel_level)
+    {
+        this->displayer = displayer;
+        pipeline_manager = new PipelineManager(render_thread_num, blend_thread_num);
+
+        switch(parallel_level) {
+            case 0:
+                frame_buffer_manager = new SingleFrameBufferManager(width, height, render_thread_num, bg_color, bg_depth,
+                    enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+                break;
+            case 1:
+            case 2:
+                frame_buffer_manager = new DoubleFrameBufferManager(width, height, render_thread_num, bg_color, bg_depth,
+                    enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+                break;
+            case 3:
+                frame_buffer_manager = new TripleFrameBufferManager(width, height, render_thread_num, bg_color, bg_depth,
+                    enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+                break;
+            case 4:
+                frame_buffer_manager = new TripleFrameBufferManager(width, height, render_thread_num, bg_color, bg_depth,
+                    enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+                break;
+            default:
+                assert(false);
+                break;
+        }
+    }
+
+    Engine(
+        PipelineManager* pipeline_manager,
+        FrameBufferManager* frame_buffer_manager,
+        Displayer* displayer,
+        int parallel_level = 1
+    ):
+        pipeline_manager_exclusive(false),
+        framebuffer_manager_exclusive(false),
+        displayer_exclusive(false),
+        parallel_level(parallel_level),
+        pipeline_manager(pipeline_manager),
+        frame_buffer_manager(frame_buffer_manager),
+        displayer(displayer)
+    {}
 
     ~Engine() {
-        if (self_created) {
-            delete pipeline_manager;
-            delete frame_buffer_manager;
-            delete displayer;
-        }
+        if (pipeline_manager_exclusive) delete pipeline_manager;
+        if (framebuffer_manager_exclusive) delete frame_buffer_manager;
+        if (displayer_exclusive) delete displayer;
     }
 
     Engine(const Engine&) = delete;
@@ -229,10 +291,11 @@ public:
         displayer->RotateBuffer();
     }
 
-
 private:
-    bool self_created;
-    int parallel_level;
+    const bool pipeline_manager_exclusive;
+    const bool framebuffer_manager_exclusive;
+    const bool displayer_exclusive;
+    const int parallel_level;
     PipelineManager* pipeline_manager;
     FrameBufferManager* frame_buffer_manager;
     Displayer* displayer;

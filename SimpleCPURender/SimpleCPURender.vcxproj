@@ -163,6 +163,7 @@
     <ClInclude Include="src\kernel\PerPixelListBuffer.h" />
     <ClInclude Include="src\kernel\PixelBuffer.h" />
     <ClInclude Include="src\kernel\ThreadSafeInsertList.h" />
+    <ClInclude Include="src\kernel\TriangleTraversal.h" />
     <ClInclude Include="src\usecase\Anime.h" />
     <ClInclude Include="src\usecase\AnimeStyleShader.h" />
     <ClInclude Include="src\usecase\Application.h" />

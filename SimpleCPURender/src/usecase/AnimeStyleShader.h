@@ -139,6 +139,7 @@ public:
         const auto& v2 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v1_wrapper.__data__);
         const auto& v3 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v2_wrapper.__data__);
         Input& fs_input = *reinterpret_cast<Input*>(fs_input_wrapper.__data__);
+        
         fs_input.world_pos = InterpolateAttr(v1.world_pos, v2.world_pos, v3.world_pos, barycentric);
         fs_input.world_normal = InterpolateAttr(v1.world_normal, v2.world_normal, v3.world_normal, barycentric);
         fs_input.texcoord = InterpolateAttr(v1.texcoord, v2.texcoord, v3.texcoord, barycentric);

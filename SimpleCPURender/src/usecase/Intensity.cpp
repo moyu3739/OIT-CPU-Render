@@ -44,11 +44,11 @@ void Intensity::LoadVertexBuffer() {
 }
 
 std::unique_ptr<Engine> Intensity::InitEngine(
-        int render_thread_num, int blend_thread_num,
-        const glm::vec3& bg_color, float bg_depth, 
-        int parallel_level, bool enable_oit,
-        bool use_backward_pplist, float backward_blend_alpha_threshold) {
-
+    int render_thread_num, int blend_thread_num,
+    const glm::vec3& bg_color, float bg_depth, 
+    int parallel_level, bool enable_oit,
+    bool use_backward_pplist, float backward_blend_alpha_threshold
+) {
     auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num,
         bg_color, bg_depth, parallel_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
 
@@ -95,7 +95,7 @@ std::unique_ptr<Engine> Intensity::InitEngine(
         else fshader->obj_color = glm::vec3(0.5f, 0.9f, 0.7f);
         
         //////// load shaders
-        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), true);
+        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), ON_FACE, true);
         fshaders.emplace_back(std::move(fshader));
     }
     vshaders.emplace_back(std::move(vshader));
@@ -139,7 +139,7 @@ std::unique_ptr<Pipeline> Intensity::InitPipeline(int render_thread_num){
     fshader->light_pos = light_pos;
     
     //////// load shaders
-    auto pipeline = std::make_unique<Pipeline>(vshader.get(), fshader.get(), render_thread_num);
+    auto pipeline = std::make_unique<Pipeline>(vshader.get(), fshader.get(), ON_FACE, render_thread_num);
     vshaders.emplace_back(std::move(vshader));
     fshaders.emplace_back(std::move(fshader));
     return pipeline;

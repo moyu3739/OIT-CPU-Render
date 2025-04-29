@@ -46,7 +46,8 @@ public:
         int render_thread_num, int blend_thread_num,
         const glm::vec3& bg_color, float bg_depth = INFINITY, 
         int parallel_level = 1, bool enable_oit = false,
-        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) override;
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ) override;
 
     virtual void UpdateTransform(const glm::mat4& transform) override {
         *global_model = transform;

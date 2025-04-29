@@ -10,6 +10,7 @@
 #include "utility.h"
 #include "Primitive.h"
 #include "AnimeStyleShader.h"
+#include "TriangleTraversal.h"
 #include "Texture.h"
 #include "ImageTexture.h"
 #include "Pipeline.h"
@@ -40,7 +41,8 @@ public:
         int render_thread_num, int blend_thread_num,
         const glm::vec3& bg_color, float bg_depth = INFINITY, 
         int parallel_level = 1, bool enable_oit = false,
-        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) override;
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ) override;
 
     std::unique_ptr<Pipeline> InitPipeline(int render_thread_num);
 

@@ -3,6 +3,8 @@
 #include <vector>
 #include "utility.h"
 #include "Primitive.h"
+#include "Shader.h"
+#include "TriangleTraversal.h"
 #include "Pipeline.h"
 #include "FrameBuffer.h"
 
@@ -34,8 +36,9 @@ public:
     // @param[in] vertex_shader  vertex shader
     // @param[in] fragment_shader  fragment shader
     // @return  shared pointer to the created pipeline
-    Pipeline* CreatePipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader, bool is_transparent) {
-        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, render_thread_num);
+    Pipeline* CreatePipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader,
+                             TriangleTraversal* triangle_traversal, bool is_transparent) {
+        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, triangle_traversal, render_thread_num);
         if (is_transparent) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);
         return pipeline;
@@ -48,8 +51,9 @@ public:
     // @param[in] use_oit  whether to use OIT; if false, alpha channel will be ignored in this pipeline
     // @return  shared pointer to the created pipeline
     Pipeline* CreatePipeline(const std::vector<VertexShader::InputWrapper>& vertex_buffer, 
-            VertexShader* vertex_shader, FragmentShader* fragment_shader, bool use_oit) {
-        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, render_thread_num);
+                             VertexShader* vertex_shader, FragmentShader* fragment_shader,
+                             TriangleTraversalType tt_type, bool use_oit) {
+        Pipeline* pipeline = new Pipeline(vertex_shader, fragment_shader, tt_type, render_thread_num);
         pipeline->BoundVertexBuffer(vertex_buffer); // bind vertex buffer
         if (use_oit) tra_pipelines.emplace_back(pipeline);
         else opa_pipelines.emplace_back(pipeline);

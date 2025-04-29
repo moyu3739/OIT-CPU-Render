@@ -12,9 +12,6 @@
 
 
 class FrameBuffer {
-private:
-    using IndexMapFunc = int (*)(int, int, int, int);
-
 public:
     // @param[in] width  width of the frame buffer
     // @param[in] height  height of the frame buffer
