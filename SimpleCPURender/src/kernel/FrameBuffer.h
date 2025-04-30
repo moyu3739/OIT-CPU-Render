@@ -12,8 +12,7 @@
 #include "ListAllocator.h"
 
 
-class Format {
-public:
+struct Format {
     enum Order {
         TOP_DOWN,
         BOTTOM_UP
@@ -104,6 +103,10 @@ public:
                 break;
         }
     }
+
+    Order order;
+    Channel channel;
+    Type type;
 };
 
 
@@ -251,6 +254,15 @@ public:
         return new unsigned char[width * height * Format::GetChannelSize(type) * Format::GetChannelNumber(channel)];
     }
 
+    // create a new empty color buffer with the given frame size and format
+    // @param[in] format  structure of format: {order, channel, type}
+    // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] format.channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
+    static void* NewColorBuffer(int width, int height, const Format& format) {
+        return NewColorBuffer(width, height, format.channel, format.type);
+    }
+
     // delete the color buffer
     static void DeleteColorBuffer(void* ptr) {
         delete[] reinterpret_cast<unsigned char*>(ptr);
@@ -261,7 +273,7 @@ public:
     // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
     // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     void WriteColorBuffer(void* ptr, Format::Order order, Format::Channel channel, Format::Type type) const {
-        switch(type) {
+        switch(order) {
             case Format::TOP_DOWN:
                 for (int y = height - 1; y >= 0; y--) {
                     for (int x = 0; x < width; x++) {
@@ -277,6 +289,15 @@ public:
                 }
                 break;
         }
+    }
+
+    // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
+    // @param[in] format  structure of format: {order, channel, type}
+    // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] format.channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
+    void WriteColorBuffer(void* ptr, const Format& format) const {
+        WriteColorBuffer(ptr, format.order, format.channel, format.type);
     }
 
 private:

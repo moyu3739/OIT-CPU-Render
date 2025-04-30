@@ -152,9 +152,15 @@ void Application::RenderAnimation(float lasting) {
     int frame_count = 0;
 
     tm.StartTimer();
+    // bool flag = false;
     while(1){
         float t = tm.ReadTimer();
         if (t > lasting) break;
+
+        // if (t > lasting / 2 && !flag) {
+        //     engine->ResetFrameBuffers(width / 2, height / 2, glm::vec3(1.0f), INFINITY);
+        //     flag = true;
+        // }
 
         float r = 2 * 3.14159 * t / T;
         float y = Y * sin(r);
