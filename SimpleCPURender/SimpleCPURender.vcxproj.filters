@@ -44,7 +44,7 @@
     <ClInclude Include="src\kernel\Primitive.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\kernel\Displayer.h">
+    <ClInclude Include="src\kernel\Frontend.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\usecase\FreeTimer.h">

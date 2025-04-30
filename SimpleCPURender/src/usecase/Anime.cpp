@@ -11,7 +11,7 @@ void Anime::LoadVertexBuffer() {
         const Object& obj = model.second;
 
         vertex_datas[model_name] = std::vector<MyVertexShader::Input>(obj.vertices->size());
-        vertex_buffers[model_name] = std::vector<VertexShader::InputWrapper>(obj.vertices->size());
+        vertex_buffers[model_name] = VertexBuffer(obj.vertices->size());
         auto& vd = vertex_datas[model_name];
         auto& vb = vertex_buffers[model_name];
         // for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
@@ -19,7 +19,7 @@ void Anime::LoadVertexBuffer() {
             vd[i].model_pos    = obj.vertices->at(i).position;
             vd[i].model_normal = obj.vertices->at(i).normal;
             vd[i].texcoord     = obj.vertices->at(i).texcoord;
-            vb[i] = VertexShader::InputWrapper{&vd[i]};
+            vb[i] = &vd[i];
         }
     }
 }
@@ -27,11 +27,11 @@ void Anime::LoadVertexBuffer() {
 std::unique_ptr<Engine> Anime::InitEngine(
     int render_thread_num, int blend_thread_num,
     const glm::vec3& bg_color, float bg_depth, 
-    int parallel_level, bool enable_oit,
+    int pipeline_level, bool enable_oit,
     bool use_backward_pplist, float backward_blend_alpha_threshold
 ) {
     auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num,
-        bg_color, bg_depth, parallel_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+        bg_color, bg_depth, pipeline_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
 
     //////// set vertex-shader parameters
     auto vshader = std::make_unique<MyVertexShader>();
@@ -67,7 +67,7 @@ std::unique_ptr<Engine> Anime::InitEngine(
     for (const auto& nvb: vertex_buffers) {
         const std::string& model_name = nvb.first;
         const Object& obj = models[model_name];
-        const std::vector<VertexShader::InputWrapper>& vertex_buffer = nvb.second;
+        const std::vector<VertexShaderInput*>& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
         auto fshader = std::make_unique<MyFragmentShader>();
@@ -75,7 +75,7 @@ std::unique_ptr<Engine> Anime::InitEngine(
         fshader->texture = obj.texture.get();
         
         //////// load shaders
-        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), ON_FACE, true);
+        engine->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), ON_FACE, true);
         fshaders.emplace_back(std::move(fshader));
     }
     vshaders.emplace_back(std::move(vshader));

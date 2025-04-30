@@ -9,29 +9,55 @@
 #include "FrameBuffer.h"
 
 
-class Displayer {
+class Frontend {
 public:
-    Displayer() {}
+    Frontend() {}
 
-    virtual ~Displayer() {
-        cv::destroyAllWindows();
-    }
+    virtual ~Frontend() {}
 
     virtual int GetBufferNumber() const = 0;
 
     virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) = 0;
 
-    virtual void Show(int delay = 1) = 0;
+    virtual void Output(unsigned long long info) = 0;
 
     virtual void RotateBuffer() = 0;
 };
 
-
-class SingleBufferDisplayer: public Displayer {
+class Displayer: public Frontend {
 public:
-    SingleBufferDisplayer() {}
+    Displayer() {}
 
-    virtual ~SingleBufferDisplayer() {}
+    virtual ~Displayer() {}
+
+    virtual void Show(int delay = 1) = 0;
+
+    virtual void Output(unsigned long long info) override {
+        Show(info);
+    }
+};
+
+// base class for built-in displayer
+// @note  remember to delete, or it will cause crash (not only memory leak) when exit 
+class BuildinDisplayer: public Displayer {
+public:
+    BuildinDisplayer() {}
+
+    virtual ~BuildinDisplayer() {
+        cv::destroyAllWindows();
+    };
+};
+
+
+// build-in single buffer displayer
+// @note  remember to delete, or it will cause crash (not only memory leak) when exit
+class BuildinSingleBufferDisplayer: public BuildinDisplayer {
+public:
+    BuildinSingleBufferDisplayer() {}
+
+    virtual ~BuildinSingleBufferDisplayer() {
+        if (data != nullptr) FrameBuffer::DeleteColorBuffer(data);
+    }
 
     virtual int GetBufferNumber() const override {
         return 1;
@@ -56,11 +82,29 @@ public:
 
     virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) override {
         LoadFromFrameBuffer8UC3(frame_buffer);
+        // LoadFromFrameBufferDirectly(frame_buffer);
+    }
+
+    void LoadFromFrameBufferDirectly(const FrameBuffer* frame_buffer) {
+        int width = frame_buffer->width;
+        int height = frame_buffer->height;
+        void* data = frame_buffer->GetColorBuffer();
+        buffer = cv::Mat(height, width, CV_32FC4, data);
     }
 
     void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer) {
-        int width = frame_buffer->GetWidth();
-        int height = frame_buffer->GetHeight();
+        if (buffer.cols != frame_buffer->width || buffer.rows != frame_buffer->height) {
+            frame_buffer->DeleteColorBuffer(data);
+            data = FrameBuffer::NewColorBuffer(frame_buffer->width, frame_buffer->height, Format::BGR, Format::UINT8);
+        }
+
+        frame_buffer->WriteColorBuffer(data, Format::TOP_DOWN, Format::BGR, Format::UINT8);
+        buffer = cv::Mat(frame_buffer->width, frame_buffer->height, CV_8UC3, data);
+    }
+
+    void __LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer) {
+        int width = frame_buffer->width;
+        int height = frame_buffer->height;
         buffer = cv::Mat(height, width, CV_8UC3);
         
         for(int y = 0; y < height; y++){ // here value of (row, col) satisfies right-top corner
@@ -84,17 +128,20 @@ public:
 
 private:
     cv::Mat buffer;
+    void* data = nullptr;
 };
 
 
-class DoubleBufferDisplayer: public Displayer {
+// build-in double buffer displayer
+// @note  remember to delete, or it will cause crash (not only memory leak) when exit
+class BuildinDoubleBufferDisplayer: public BuildinDisplayer {
 public:
-    DoubleBufferDisplayer() {
+    BuildinDoubleBufferDisplayer() {
         front_buffer = new cv::Mat(1, 1, CV_8UC3); // dummy buffer for displayable initialization
         back_buffer  = new cv::Mat(1, 1, CV_8UC3); // dummy buffer for displayable initialization
     }
 
-    virtual ~DoubleBufferDisplayer() {
+    virtual ~BuildinDoubleBufferDisplayer() {
         delete front_buffer;
         delete back_buffer;
         cv::destroyAllWindows();
@@ -126,8 +173,8 @@ public:
     }
 
     void LoadFromFrameBuffer8UC3(const FrameBuffer* frame_buffer) {
-        int width = frame_buffer->GetWidth();
-        int height = frame_buffer->GetHeight();
+        int width = frame_buffer->width;
+        int height = frame_buffer->height;
         *back_buffer = cv::Mat(height, width, CV_8UC3);
         
         for(int y = 0; y < height; y++) { // here value of (row, col) satisfies right-top corner

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <thread>
 
 
 // check and delete
@@ -76,4 +77,9 @@ inline float Screen2PixelFloat(float coord, int range){
 inline float Pixel2Screen(int pixel, int range){
     return (2.0f * pixel + 1.0f) / range - 1.0f;
 }
+
+#define StartThread(name, statements) \
+std::thread name([&](){ \
+    statements \
+});
 

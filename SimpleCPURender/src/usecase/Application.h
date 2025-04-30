@@ -8,12 +8,11 @@
 #include <glm/ext.hpp>
 #include "utility.h"
 #include "Primitive.h"
-#include "IntensityShader.h"
 #include "Texture.h"
 #include "ImageTexture.h"
 #include "Pipeline.h"
 #include "PipelineManager.h"
-#include "Displayer.h"
+#include "Frontend.h"
 #include "Engine.h"
 
 
@@ -45,7 +44,7 @@ public:
     virtual std::unique_ptr<Engine> InitEngine(
         int render_thread_num, int blend_thread_num,
         const glm::vec3& bg_color, float bg_depth = INFINITY, 
-        int parallel_level = 1, bool enable_oit = false,
+        int pipeline_level = 1, bool enable_oit = false,
         bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) = 0;
 
     virtual void UpdateTransform(const glm::mat4& transform) = 0;

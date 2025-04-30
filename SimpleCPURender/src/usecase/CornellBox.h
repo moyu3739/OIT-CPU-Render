@@ -9,11 +9,11 @@
 #include "Application.h"
 #include "Engine.h"
 #include "FrameBuffer.h"
-#include "Displayer.h"
+#include "Frontend.h"
 #include "Pipeline.h"
 #include "Shader.h"
+#include "Shape.h"
 #include "ShapeShader.h"
-#include "AnimeStyleShader.h"
 
 
 class CornellBox: public Application {
@@ -45,7 +45,7 @@ public:
     virtual std::unique_ptr<Engine> InitEngine(
         int render_thread_num, int blend_thread_num,
         const glm::vec3& bg_color, float bg_depth = INFINITY, 
-        int parallel_level = 1, bool enable_oit = false,
+        int pipeline_level = 1, bool enable_oit = false,
         bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
     ) override;
 
@@ -87,8 +87,6 @@ public:
         std::mt19937 gen;
     };
 
-    
-
 public:
     int N_shapes;
     bool combined = false;
@@ -97,7 +95,7 @@ public:
     RandomGenerator random_gen;
 
     std::unordered_map<std::string, std::vector<MyVertexShader::Input>> vertex_datas;
-    std::unordered_map<std::string, std::vector<VertexShader::InputWrapper>> vertex_buffers; // <model_name, vertex_buffer>
+    std::unordered_map<std::string, VertexBuffer> vertex_buffers; // <model_name, vertex_buffer>
     std::vector<std::unique_ptr<MyVertexShader>> vshaders;
     std::vector<std::unique_ptr<MyFragmentShader>> fshaders;
 };

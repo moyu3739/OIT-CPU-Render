@@ -5,52 +5,46 @@
 #include "utility.h"
 
 
-struct VertexShaderInput {
-protected:
-    VertexShaderInput() {}
-};
-
-struct VertexShaderOutput {
-protected:
-    VertexShaderOutput() {}
+class VertexShader{
 public:
-    glm::vec4 __position__; // vertex position in clip space
-};
+    struct InputWrapper {
+        void* __data__;
+    };
 
-struct FragmentShaderInput {
-protected:
-    FragmentShaderInput() {}
-};
+    struct OutputWrapper {
+        glm::vec4 __position__; // vertex position in clip space
+        void* __data__;
+    };
 
-struct FragmentShaderOutput {
-protected:
-    FragmentShaderOutput() {}
-public:
-    glm::vec4 __color__; // fragment color
-};
-
-using VertexBuffer = std::vector<VertexShaderInput*>;
-
-
-class VertexShader {
 public:
     VertexShader() {}
 
     virtual ~VertexShader() {}
 
-    virtual VertexShaderInput* MakeInput() const = 0;
+    virtual void* MakeInput() const = 0;
 
-    virtual VertexShaderOutput* MakeOutput() const = 0;
+    virtual void* MakeOutput() const = 0;
 
-    virtual void DestroyInput(VertexShaderInput* input) const = 0;
+    virtual void DestroyInput(void* input) const = 0;
 
-    virtual void DestroyOutput(VertexShaderOutput* output) const = 0;
+    virtual void DestroyOutput(void* output) const = 0;
 
-    virtual void Call(const VertexShaderInput& input, VertexShaderOutput& output) = 0;
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) = 0;
+
 };
 
 
-class FragmentShader {
+class FragmentShader{
+public:
+    struct InputWrapper {
+        void* __data__;
+    };
+
+    struct OutputWrapper {
+        glm::vec4 __color__; // fragment color
+        void* __data__;
+    };
+
 public:
     FragmentShader() {}
 
@@ -65,27 +59,27 @@ public:
                 / (barycentric.x + barycentric.y + barycentric.z);
     }
 
-    virtual FragmentShaderInput* MakeInput() const = 0;
-
-    virtual FragmentShaderOutput* MakeOutput() const = 0;
-
-    virtual void DestroyInput(FragmentShaderInput* input) const = 0;
-
-    virtual void DestroyOutput(FragmentShaderOutput* output) const = 0;
-
     // interpolate vertex attributes
     // @param[in] v0, v1, v2  vertex attributes of the triangle
     // @param[in] barycentric  barycentric coordinates of the pixel
     // @param[out] fs_input  fragment shader input
     virtual void Interpolate(
-        const VertexShaderOutput& v0,
-        const VertexShaderOutput& v1,
-        const VertexShaderOutput& v2,
-        const glm::vec3& barycentric,
-        FragmentShaderInput& fs_input
-    ) = 0;
+            const VertexShader::OutputWrapper& v0,
+            const VertexShader::OutputWrapper& v1,
+            const VertexShader::OutputWrapper& v2,
+            const glm::vec3& barycentric,
+            InputWrapper& fs_input) = 0;
 
-    virtual void Call(const FragmentShaderInput& input, FragmentShaderOutput& output) = 0;
+    virtual void* MakeInput() const = 0;
+
+    virtual void* MakeOutput() const = 0;
+
+    virtual void DestroyInput(void* input) const = 0;
+
+    virtual void DestroyOutput(void* output) const = 0;
+
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) = 0;
+
 };
 
 
@@ -118,29 +112,29 @@ public:
 
     void SetNULL() {
         for (int i = 0; i < VS_IO_NUM; i++) {
-            vs_input[i] = nullptr;
-            vs_output[i] = nullptr;
+            vs_input[i].__data__ = nullptr;
+            vs_output[i].__data__ = nullptr;
         }
-        fs_input = nullptr;
-        fs_output = nullptr;
+        fs_input.__data__ = nullptr;
+        fs_output.__data__ = nullptr;
     }
 
     void Make() {
         for (int i = 0; i < VS_IO_NUM; i++) {
-            vs_input[i] = vshader->MakeInput();
-            vs_output[i] = vshader->MakeOutput();
+            vs_input[i].__data__ = vshader->MakeInput();
+            vs_output[i].__data__ = vshader->MakeOutput();
         }
-        fs_input = fshader->MakeInput();
-        fs_output = fshader->MakeOutput();
+        fs_input.__data__ = fshader->MakeInput();
+        fs_output.__data__ = fshader->MakeOutput();
     }
 
     void Destroy() {
         for (int i = 0; i < VS_IO_NUM; i++) {
-            if (vs_input[i] != nullptr) vshader->DestroyInput(vs_input[i]);
-            if (vs_output[i] != nullptr) vshader->DestroyOutput(vs_output[i]);
+            if (vs_input[i].__data__ != nullptr) vshader->DestroyInput(vs_input[i].__data__);
+            if (vs_output[i].__data__ != nullptr) vshader->DestroyOutput(vs_output[i].__data__);
         }
-        if (fs_input != nullptr) fshader->DestroyInput(fs_input);
-        if (fs_output != nullptr) fshader->DestroyOutput(fs_output);
+        if (fs_input.__data__ != nullptr) fshader->DestroyInput(fs_input.__data__);
+        if (fs_output.__data__ != nullptr) fshader->DestroyOutput(fs_output.__data__);
         SetNULL();
     }
 
@@ -150,10 +144,10 @@ private:
     const FragmentShader* fshader;
 
 public:
-    VertexShaderInput* vs_input[VS_IO_NUM];
-    VertexShaderOutput* vs_output[VS_IO_NUM];
-    FragmentShaderInput* fs_input;
-    FragmentShaderOutput* fs_output;
+    VertexShader::InputWrapper vs_input[VS_IO_NUM];
+    VertexShader::OutputWrapper vs_output[VS_IO_NUM];
+    FragmentShader::InputWrapper fs_input;
+    FragmentShader::OutputWrapper fs_output;
 };
 
 

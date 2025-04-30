@@ -135,7 +135,7 @@ void Application::ResetNormal(const std::string& model_name, bool left_handed){
 
 void Application::RenderFrame() {
     auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 0, true);
-    engine->RenderSerial(0);
+    engine->SerialRender(0);
 }
 
 void Application::RenderAnimation(float lasting) {
@@ -162,17 +162,17 @@ void Application::RenderAnimation(float lasting) {
 
         // render and show
         float start_render = tm.ReadTimer();
-        engine->RenderParallel();
+        engine->PipelinedRender();
         float duration_render = tm.ReadTimer() - start_render;
         total_render_time += duration_render;
 
-        // 计算帧率
+        // calculate frame rate
         frame_count++;
         float now = tm.ReadTimer();
         float duration_frame = now - last_frame;
         last_frame = now;
 
-        printf("\033[2J\033[H"); // 清空缓冲区
+        printf("\033[2J\033[H"); // clear terminal
         printf("[%.1f]\n", t);
         printf("Render time:\t %.1f ms\n", duration_render * 1000);
         printf("Frame time:\t%.1f ms\n", duration_frame * 1000);

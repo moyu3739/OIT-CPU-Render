@@ -5,11 +5,11 @@
 std::unique_ptr<Engine> CornellBox::InitEngine(
     int render_thread_num, int blend_thread_num,
     const glm::vec3& bg_color, float bg_depth,
-    int parallel_level, bool enable_oit,
+    int pipeline_level, bool enable_oit,
     bool use_backward_pplist, float backward_blend_alpha_threshold
 ) {
     auto engine = std::make_unique<Engine>(width, height, render_thread_num, blend_thread_num,
-        bg_color, bg_depth, parallel_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
+        bg_color, bg_depth, pipeline_level, enable_oit, use_backward_pplist, backward_blend_alpha_threshold);
     global_model = std::make_shared<glm::mat4>(
         GetModelTransform(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f));
 
@@ -53,17 +53,16 @@ std::unique_ptr<Engine> CornellBox::InitEngine(
         // const float zfar = 100.0f; // far plane for clipping
         // vshader->projection = GetOrthographicProjectionTransform(orth_width, orth_height, znear, zfar);
 
-
         const std::string& model_name = nvb.first;
         const Object& obj = models[model_name];
-        const std::vector<VertexShader::InputWrapper>& vertex_buffer = nvb.second;
+        const VertexBuffer& vertex_buffer = nvb.second;
 
         //////// set fragment-shader parameters
         auto fshader = std::make_unique<MyFragmentShader>();
         fshader->light_pos = light_pos;
 
         //////// load shaders
-        engine->GetPipelineManager()->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), ON_FACE, true);
+        engine->CreatePipeline(vertex_buffer, vshader.get(), fshader.get(), ON_FACE, true);
         vshaders.emplace_back(std::move(vshader));
         fshaders.emplace_back(std::move(fshader));
     }
@@ -105,11 +104,11 @@ void CornellBox::LoadVertexBufferShapesDivided() {
         }
 
         vertex_datas[name] = shape->GetVertexData();
-        vertex_buffers[name] = std::vector<VertexShader::InputWrapper>(vertex_datas[name].size());
+        vertex_buffers[name] = VertexBuffer(vertex_datas[name].size());
         auto& vd = vertex_datas[name];
         auto& vb = vertex_buffers[name];
         for (int j = 0; j < vd.size(); j++) {
-            vb[j] = VertexShader::InputWrapper{&vd[j]};
+            vb[j] = &vd[j];
         }
 
         shapes.emplace_back(std::move(shape));
@@ -119,17 +118,17 @@ void CornellBox::LoadVertexBufferShapesDivided() {
 void CornellBox::LoadVertexBufferShapesCombined() {
     LoadVertexBufferShapesDivided();
 
-    for (auto& vertex_data: vertex_datas) {
-        auto& vertices = vertex_data.second;
+    for (auto& nvd: vertex_datas) {
+        auto& vertices = nvd.second;
         glm::vec3 translation = random_gen.RandomVec3(glm::vec3(-1.5f), glm::vec3(1.5f));
         for (auto& vertex: vertices) vertex.position += translation;
     }
 
-    std::vector<VertexShader::InputWrapper> vertex_buffers_combined;
-    for (auto& vertex_buffer: vertex_buffers) {
-        auto& vertices = vertex_buffer.second;
+    VertexBuffer vertex_buffers_combined;
+    for (auto& nvb: vertex_buffers) {
+        auto& vertex_buffer = nvb.second;
         vertex_buffers_combined.insert(
-            vertex_buffers_combined.end(), vertices.begin(), vertices.end());
+            vertex_buffers_combined.end(), vertex_buffer.begin(), vertex_buffer.end());
     }
 
     vertex_buffers.clear();

@@ -8,13 +8,13 @@
 
 class AnimeStyleVertexShader: public VertexShader{
 public:
-    struct Input: public VertexShaderInput {
+    struct Input{
         glm::vec3 model_pos; // vertex position in model space
         glm::vec3 model_normal; // vertex normal in model space
         glm::vec2 texcoord; // texture coordinate
     };
 
-    struct Output: public VertexShaderOutput {
+    struct Output{
         glm::vec3 world_pos; // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
         glm::vec2 texcoord; // texture coordinate
@@ -25,30 +25,30 @@ public:
 
     ~AnimeStyleVertexShader() {}
 
-    virtual VertexShaderInput* MakeInput() const override {
+    virtual void* MakeInput() const override {
         return new Input;
     }
 
-    virtual VertexShaderOutput* MakeOutput() const override {
+    virtual void* MakeOutput() const override {
         return new Output;
     }
 
-    virtual void DestroyInput(VertexShaderInput* input) const override {
+    virtual void DestroyInput(void* input) const override {
         delete reinterpret_cast<Input*>(input);
     }
 
-    virtual void DestroyOutput(VertexShaderOutput* output) const override {
+    virtual void DestroyOutput(void* output) const override {
         delete reinterpret_cast<Output*>(output);
     }
 
-    virtual void Call(const VertexShaderInput& input, VertexShaderOutput& output) override {
-        const Input& rinput = reinterpret_cast<const Input&>(input);
-        Output& routput = reinterpret_cast<Output&>(output);
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) override {
+        const Input& input = *reinterpret_cast<const Input*>(input_wrapper.__data__);
+        Output& output = *reinterpret_cast<Output*>(output_wrapper.__data__);
 
-        routput.world_pos = glm::vec3(model * glm::vec4(rinput.model_pos, 1.0f));
-        routput.world_normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(model))) * rinput.model_normal);
-        routput.texcoord = rinput.texcoord;
-        routput.__position__ = projection * view * model * glm::vec4(rinput.model_pos, 1.0f);
+        output.world_pos = glm::vec3(model * glm::vec4(input.model_pos, 1.0f));
+        output.world_normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(model))) * input.model_normal);
+        output.texcoord = input.texcoord;
+        output_wrapper.__position__ = projection * view * model * glm::vec4(input.model_pos, 1.0f);
     }
 
 public:
@@ -60,13 +60,15 @@ public:
 
 class AnimeStyleFragmentShader: public FragmentShader{
 public:
-    struct Input: public FragmentShaderInput {
+    struct Input{
         glm::vec3 world_pos; // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
         glm::vec2 texcoord; // texture coordinate
     };
 
-    struct Output: public FragmentShaderOutput {};
+    struct Output{
+
+    };
 
 public:
     AnimeStyleFragmentShader() {}
@@ -93,7 +95,7 @@ public:
         return hsv;
     }
 
-    glm::vec3 HSv1RGB(const glm::vec3& hsv) {
+    glm::vec3 HSV2RGB(const glm::vec3& hsv) {
         float c = hsv.z * hsv.y;
         float x = c * (1.0f - fabs(fmod(hsv.x / 60.0f, 2.0f) - 1.0f));
         float m = hsv.z - c;
@@ -120,56 +122,55 @@ public:
         float diff = CalcValueCoef(dot);
         hsv.z *= diff;
         hsv.y += ks * (1 - hsv.y) * (1.0f - diff);
-        return HSv1RGB(hsv);
-    }
-
-    virtual FragmentShaderInput* MakeInput() const override {
-        return new Input;
-    }
-
-    virtual FragmentShaderOutput* MakeOutput() const override {
-        return new Output;
-    }
-
-    virtual void DestroyInput(FragmentShaderInput* input) const override {
-        delete reinterpret_cast<Input*>(input);
-    }
-
-    virtual void DestroyOutput(FragmentShaderOutput* output) const override {
-        delete reinterpret_cast<Output*>(output);
+        return HSV2RGB(hsv);
     }
 
     // interpolate vertex attributes
-    // @param[in] v0, v1, v2  vertex attributes of the triangle
+    // @param[in] v1, v2, v3  vertex attributes of the triangle
     // @param[in] barycentric  barycentric coordinates of the pixel
     // @param[out] fs_input  fragment shader input
     virtual void Interpolate(
-        const VertexShaderOutput& v0,
-        const VertexShaderOutput& v1,
-        const VertexShaderOutput& v2,
-        const glm::vec3& barycentric,
-        FragmentShaderInput& fs_input
-    ) override {
-        const auto& rv0 = reinterpret_cast<const AnimeStyleVertexShader::Output&>(v0);
-        const auto& rv1 = reinterpret_cast<const AnimeStyleVertexShader::Output&>(v1);
-        const auto& rv2 = reinterpret_cast<const AnimeStyleVertexShader::Output&>(v2);
-        Input& rfs_input = reinterpret_cast<Input&>(fs_input);
+            const VertexShader::OutputWrapper& v0_wrapper,
+            const VertexShader::OutputWrapper& v1_wrapper,
+            const VertexShader::OutputWrapper& v2_wrapper,
+            const glm::vec3& barycentric,
+            InputWrapper& fs_input_wrapper) override {
+        const auto& v1 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v0_wrapper.__data__);
+        const auto& v2 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v1_wrapper.__data__);
+        const auto& v3 = *reinterpret_cast<const AnimeStyleVertexShader::Output*>(v2_wrapper.__data__);
+        Input& fs_input = *reinterpret_cast<Input*>(fs_input_wrapper.__data__);
         
-        rfs_input.world_pos = InterpolateAttr(rv0.world_pos, rv1.world_pos, rv2.world_pos, barycentric);
-        rfs_input.world_normal = InterpolateAttr(rv0.world_normal, rv1.world_normal, rv2.world_normal, barycentric);
-        rfs_input.texcoord = InterpolateAttr(rv0.texcoord, rv1.texcoord, rv2.texcoord, barycentric);
+        fs_input.world_pos = InterpolateAttr(v1.world_pos, v2.world_pos, v3.world_pos, barycentric);
+        fs_input.world_normal = InterpolateAttr(v1.world_normal, v2.world_normal, v3.world_normal, barycentric);
+        fs_input.texcoord = InterpolateAttr(v1.texcoord, v2.texcoord, v3.texcoord, barycentric);
     }
 
-    virtual void Call(const FragmentShaderInput& input, FragmentShaderOutput& output) override {
-        const Input& rinput = reinterpret_cast<const Input&>(input);
+    virtual void* MakeInput() const override {
+        return new Input;
+    }
 
-        glm::vec4 obj_color = texture->Sample(rinput.texcoord);
-        glm::vec3 light_dir = glm::normalize(light_pos - rinput.world_pos);
-        float dot = glm::dot(rinput.world_normal, light_dir);
+    virtual void* MakeOutput() const override {
+        return new Output;
+    }
+
+    virtual void DestroyInput(void* input) const override {
+        delete reinterpret_cast<Input*>(input);
+    }
+
+    virtual void DestroyOutput(void* output) const override {
+        delete reinterpret_cast<Output*>(output);
+    }
+
+    virtual void Call(const InputWrapper& input_wrapper, OutputWrapper& output_wrapper) override {
+        const Input& input = *reinterpret_cast<const Input*>(input_wrapper.__data__);
+
+        glm::vec4 obj_color = texture->Sample(input.texcoord);
+        glm::vec3 light_dir = glm::normalize(light_pos - input.world_pos);
+        float dot = glm::dot(input.world_normal, light_dir);
         glm::vec3 color = GetDiffuse(kd * glm::vec3(obj_color) * light_color, dot);
 
-        // output.__color__ = glm::vec4(color, 0.3f);
-        output.__color__ = glm::vec4(color, Clamp(rinput.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f));
+        // output_wrapper.__color__ = glm::vec4(color, 0.3f);
+        output_wrapper.__color__ = glm::vec4(color, Clamp(input.world_pos.y / 10.0f + 0.5f, 0.0f, 1.0f));
     }
 
 public:

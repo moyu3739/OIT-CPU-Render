@@ -8,7 +8,7 @@
 #include "CornellBox.h"
 
 #include "Pipeline.h"
-#include "Displayer.h"
+#include "Frontend.h"
 #include "FrameBuffer.h"
 #include "FrameBufferManager.h"
 #include "Timer.h"

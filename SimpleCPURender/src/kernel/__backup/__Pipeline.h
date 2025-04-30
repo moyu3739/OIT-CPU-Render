@@ -49,7 +49,7 @@ public:
         this->triangle_traversal = triangle_traversal;
     }
 
-    void BoundVertexBuffer(const VertexBuffer& vertex_buffer){
+    void BoundVertexBuffer(const std::vector<VertexShader::InputWrapper>& vertex_buffer){
         this->vertex_buffer = &vertex_buffer;
     }
 
@@ -57,7 +57,7 @@ public:
         return thread_num;
     }
 
-    const VertexBuffer& GetVertexBuffer() const {
+    const std::vector<VertexShader::InputWrapper>& GetVertexBuffer() const {
         return *vertex_buffer;
     }
 
@@ -177,30 +177,30 @@ private:
     // @param[in] thread_id  thread id (0, 1, 2, ..., thread_num - 1)
     template <bool use_oit = false>
     void RenderTriangle(int idx, FrameBuffer* frame_buffer, int thread_id) {
-        int width = frame_buffer->width;
-        int height = frame_buffer->height;
+        int width = frame_buffer->GetWidth();
+        int height = frame_buffer->GetHeight();
 
-        const auto* vs_input_v0 = vertex_buffer->at(idx);
-        const auto* vs_input_v1 = vertex_buffer->at(idx + 1);
-        const auto* vs_input_v2 = vertex_buffer->at(idx + 2);
-        auto** vs_output = shader_io_group.GetAt(thread_id)->vs_output;
-        auto* fs_input  = shader_io_group.GetAt(thread_id)->fs_input;
-        auto* fs_output = shader_io_group.GetAt(thread_id)->fs_output;
-
+        const auto& vs_input_v0 = vertex_buffer->at(idx);
+        const auto& vs_input_v1 = vertex_buffer->at(idx + 1);
+        const auto& vs_input_v2 = vertex_buffer->at(idx + 2);
+        auto& vs_output = shader_io_group.GetAt(thread_id)->vs_output;
+        auto& fs_input  = shader_io_group.GetAt(thread_id)->fs_input;
+        auto& fs_output = shader_io_group.GetAt(thread_id)->fs_output;
+        
         // call vertex-shader
-        vertex_shader->Call(*vs_input_v0, *vs_output[0]);
-        vertex_shader->Call(*vs_input_v1, *vs_output[1]);
-        vertex_shader->Call(*vs_input_v2, *vs_output[2]);
+        vertex_shader->Call(vs_input_v0, vs_output[0]);
+        vertex_shader->Call(vs_input_v1, vs_output[1]);
+        vertex_shader->Call(vs_input_v2, vs_output[2]);
 
         // save w for perspective division
-        float w0 = vs_output[0]->__position__.w;
-        float w1 = vs_output[1]->__position__.w;
-        float w2 = vs_output[2]->__position__.w;
+        float w0 = vs_output[0].__position__.w;
+        float w1 = vs_output[1].__position__.w;
+        float w2 = vs_output[2].__position__.w;
 
         // map to clipping space, where (-1, 1) is visible region
-        glm::vec4 screen_pos_v0 = vs_output[0]->__position__ / w0;
-        glm::vec4 screen_pos_v1 = vs_output[1]->__position__ / w1;
-        glm::vec4 screen_pos_v2 = vs_output[2]->__position__ / w2;
+        glm::vec4 screen_pos_v0 = vs_output[0].__position__ / w0;
+        glm::vec4 screen_pos_v1 = vs_output[1].__position__ / w1;
+        glm::vec4 screen_pos_v2 = vs_output[2].__position__ / w2;
 
         // calculate bounding box
         int pixel_min_x = Screen2Pixel(std::min(screen_pos_v0.x, std::min(screen_pos_v1.x, screen_pos_v2.x)), width);
@@ -239,7 +239,7 @@ private:
 
                 // perspective-correct interpolation
                 fragment_shader->Interpolate(
-                    *vs_output[0], *vs_output[1], *vs_output[2], barycentric, *fs_input);
+                    vs_output[0], vs_output[1], vs_output[2], barycentric, fs_input);
                 float screen_depth = fragment_shader->InterpolateAttr(
                     screen_pos_v0.z, screen_pos_v1.z, screen_pos_v2.z, barycentric);
 
@@ -249,12 +249,12 @@ private:
                 // write color to frame buffer
                 if (frame_buffer->DepthTestAt(screen_depth, x, y)){ // get max depth, note that z-axis points out of the screen
                     // call fragment-shader
-                    fragment_shader->Call(*fs_input, *fs_output);
+                    fragment_shader->Call(fs_input, fs_output);
 
                     if constexpr (use_oit)
-                        frame_buffer->HandleNewFragment_T(fs_output->__color__, screen_depth, x, y, thread_id);
+                        frame_buffer->HandleNewFragment_T(fs_output.__color__, screen_depth, x, y, thread_id);
                     else
-                        frame_buffer->CoverFragment_T(fs_output->__color__, screen_depth, x, y);
+                        frame_buffer->CoverFragment_T(fs_output.__color__, screen_depth, x, y);
                 }
             }
         }
@@ -262,7 +262,7 @@ private:
 
 private:
     const int thread_num;
-    const VertexBuffer* vertex_buffer;
+    const std::vector<VertexShader::InputWrapper>* vertex_buffer;
     ShaderIOGroup shader_io_group;
     VertexShader* vertex_shader = nullptr;
     FragmentShader* fragment_shader = nullptr;

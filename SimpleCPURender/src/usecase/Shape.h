@@ -1,12 +1,10 @@
 #include <vector>
 #include <glm/glm.hpp>
+#include "ShapeShader.h"
 #define PI 3.14159265
 
-struct ShapeVertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec3 color;
-};
+
+using ShapeVertex = ShapeVertexShader::Input;
 
 class Shape {
 public:

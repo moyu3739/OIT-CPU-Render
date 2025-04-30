@@ -2,7 +2,6 @@
 
 #include <mutex>
 #include <memory>
-#include <omp.h>
 #include <glm/glm.hpp>
 
 
@@ -81,6 +80,15 @@ public:
     void CoverAt_T(const glm::vec3& color, float depth, int idx) {
         std::lock_guard<std::mutex> lock(mtx_buffer[idx]);
         if (depth < pixel_buffer[idx].depth) SetAt(color, depth, idx);
+    }
+
+    // get the color buffer directly
+    // @note  the format of the color buffer is as below:
+    // @note    - 'RGBA' 4 channels, 32 bits floating number per channel, 128 bits per pixel
+    // @note    - 'A' channel can be any value, which should be IGNORED
+    // @note    - buffer order is firstly from left to right, and then from BOTTOM to top
+    void* GetColorBuffer() const {
+        return pixel_buffer;
     }
 
 private:

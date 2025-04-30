@@ -167,7 +167,7 @@
     <ClInclude Include="src\usecase\Anime.h" />
     <ClInclude Include="src\usecase\AnimeStyleShader.h" />
     <ClInclude Include="src\usecase\Application.h" />
-    <ClInclude Include="src\kernel\Displayer.h" />
+    <ClInclude Include="src\kernel\Frontend.h" />
     <ClInclude Include="src\kernel\FrameBuffer.h" />
     <ClInclude Include="src\usecase\CornellBox.h" />
     <ClInclude Include="src\usecase\FreeTimer.h" />

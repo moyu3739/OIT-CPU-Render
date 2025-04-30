@@ -45,13 +45,15 @@ public:
     // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
     //              if false, the frame buffer will use forward per-pixel linked list buffer.
     //              (only valid when `enable_oit` is true)
-    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    // @param[in] backward_blend_alpha_threshold  when backward blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
-    NframeBufferManager(int width, int height, int allocator_num,
-                        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-                        bool enable_oit = false,
-                        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) {
+    NframeBufferManager(
+        int width, int height, int allocator_num,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ) {
         for (int i = 0; i < N; i++) {
             buffers[i] = new FrameBuffer(width, height, allocator_num, bg_color, bg_depth, enable_oit,
                                          use_backward_pplist, backward_blend_alpha_threshold);
@@ -112,15 +114,20 @@ public:
     // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
     //              if false, the frame buffer will use forward per-pixel linked list buffer.
     //              (only valid when `enable_oit` is true)
-    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    // @param[in] backward_blend_alpha_threshold  when backward blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
-    DoubleFrameBufferManager(int width, int height, int allocator_num,
-                             const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-                             bool enable_oit = false,
-                             bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f)
-    : NframeBufferManager<2>(width, height, allocator_num, bg_color, bg_depth, enable_oit,
-                             use_backward_pplist, backward_blend_alpha_threshold) {}
+    DoubleFrameBufferManager(
+        int width, int height, int allocator_num,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        NframeBufferManager<2>(
+            width, height, allocator_num, bg_color, bg_depth, enable_oit,
+            use_backward_pplist, backward_blend_alpha_threshold
+        )
+    {}
 
     virtual ~DoubleFrameBufferManager() {}
 
@@ -146,15 +153,20 @@ public:
     // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
     //              if false, the frame buffer will use forward per-pixel linked list buffer.
     //              (only valid when `enable_oit` is true)
-    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    // @param[in] backward_blend_alpha_threshold  when backward blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
-    TripleFrameBufferManager(int width, int height, int allocator_num,
-                             const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-                             bool enable_oit = false,
-                             bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f)
-    : NframeBufferManager<3>(width, height, allocator_num, bg_color, bg_depth, enable_oit,
-                             use_backward_pplist, backward_blend_alpha_threshold) {}
+    TripleFrameBufferManager(
+        int width, int height, int allocator_num,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        NframeBufferManager<3>(
+            width, height, allocator_num, bg_color, bg_depth, enable_oit,
+            use_backward_pplist, backward_blend_alpha_threshold
+        )
+    {}
 
     virtual ~TripleFrameBufferManager() {}
 

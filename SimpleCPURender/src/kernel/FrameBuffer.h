@@ -3,12 +3,108 @@
 #include <vector>
 #include <list>
 #include <atomic>
+// #include <cstdlib>
 #include <glm/glm.hpp>
 #include "utility.h"
 #include "Primitive.h"
 #include "PixelBuffer.h"
 #include "PerPixelListBuffer.h"
 #include "ListAllocator.h"
+
+
+class Format {
+public:
+    enum Order {
+        TOP_DOWN,
+        BOTTOM_UP
+    };
+    enum Channel {
+        RGB,
+        RGBA,
+        BGR,
+        BGRA
+    };
+    enum Type {
+        UINT8,
+        UINT16,
+        FLOAT32,
+        FLOAT64
+    };
+
+    static int GetChannelSize(Type type) {
+        switch(type) {
+            case UINT8: return 1;
+            case UINT16: return 2;
+            case FLOAT32: return 4;
+            case FLOAT64: return 8;
+        }
+    }
+
+    static int GetChannelNumber(Channel channel) {
+        switch(channel) {
+            case RGB:
+            case BGR: return 3;
+            case RGBA:
+            case BGRA: return 4;
+        }
+    }
+
+    static void WriteOneData(float x, void*& ptr, Type type) {
+        switch(type) {
+            case UINT8: {
+                unsigned char* p = reinterpret_cast<unsigned char*>(ptr);
+                *p = static_cast<unsigned char>(x * 255);
+                ptr = reinterpret_cast<void*>(p + 1);
+                break;
+            }
+            case UINT16: {
+                unsigned short* p = reinterpret_cast<unsigned short*>(ptr);
+                *p = static_cast<unsigned short>(x * 65535);
+                ptr = reinterpret_cast<void*>(p + 1);
+                break;
+            }
+            case FLOAT32: {
+                float* p = reinterpret_cast<float*>(ptr);
+                *p = x;
+                ptr = reinterpret_cast<void*>(p + 1);
+                break;
+            }
+            case FLOAT64: {
+                double* p = reinterpret_cast<double*>(ptr);
+                *p = static_cast<double>(x);
+                ptr = reinterpret_cast<void*>(p + 1);
+                break;
+            }
+        }
+    }
+
+    static void WriteOnePixel(const glm::vec3& color, void*& ptr, Channel channel, Type type) {
+        switch(channel) {
+            case RGB:
+                WriteOneData(color.r, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.b, ptr, type);
+                break;
+            case RGBA:
+                WriteOneData(color.r, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.b, ptr, type);
+                WriteOneData(1.0f, ptr, type); // alpha channel
+                break;
+            case BGR:
+                WriteOneData(color.b, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.r, ptr, type);
+                break;
+            case BGRA:
+                WriteOneData(color.b, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.r, ptr, type);
+                WriteOneData(1.0f, ptr, type); // alpha channel
+                break;
+        }
+    }
+};
 
 
 class FrameBuffer {
@@ -22,7 +118,7 @@ public:
     // @param[in] use_backward_pplist  if true, the frame buffer will use backward per-pixel linked list buffer;
     //              if false, the frame buffer will use forward per-pixel linked list buffer.
     //              (only valid when `enable_oit` is true)
-    // @param[in] backward_blend_alpha_threshold  when blending, stop if the alpha value of blended fragments
+    // @param[in] backward_blend_alpha_threshold  when backward blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
     FrameBuffer(int width, int height, int allocator_num,
@@ -121,26 +217,66 @@ public:
         }
     }
 
-    int GetWidth() const {
-        return width;
-    }
-
-    int GetHeight() const {
-        return height;
-    }
-
+    // do depth test at (x, y) with the given depth
+    // @note  `x` from left to right, `y` from BOTTOM to top
     bool DepthTestAt(float depth, int x, int y) {
         return depth < GetDepthAt(x, y);
     }
 
     // get color with buffer memory order
+    // @note  `x` from left to right, `y` from BOTTOM to top
     const glm::vec3& GetColorAt(int x, int y) const {
         return pixel_buffer->ColorAt(x, y);
     }
 
     // get color with buffer memory order
+    // @note  `x` from left to right, `y` from BOTTOM to top
     float GetDepthAt(int x, int y) const {
         return pixel_buffer->DepthAt(x, y);
+    }
+
+    // get the color buffer directly
+    // @note  the format of the color buffer is as below:
+    // @note    - 'RGBA' 4 channels, 32 bits floating number per channel, 128 bits per pixel
+    // @note    - 'A' channel can be any value, which should be IGNORED
+    // @note    - buffer order is firstly from left to right, and then from BOTTOM to top
+    void* GetColorBuffer() const {
+        return pixel_buffer->GetColorBuffer();
+    }
+
+    // create a new empty color buffer with the given frame size and format
+    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
+    static void* NewColorBuffer(int width, int height, Format::Channel channel, Format::Type type) {
+        return new unsigned char[width * height * Format::GetChannelSize(type) * Format::GetChannelNumber(channel)];
+    }
+
+    // delete the color buffer
+    static void DeleteColorBuffer(void* ptr) {
+        delete[] reinterpret_cast<unsigned char*>(ptr);
+    }
+
+    // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
+    // @param[in] order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
+    void WriteColorBuffer(void* ptr, Format::Order order, Format::Channel channel, Format::Type type) const {
+        switch(type) {
+            case Format::TOP_DOWN:
+                for (int y = height - 1; y >= 0; y--) {
+                    for (int x = 0; x < width; x++) {
+                        Format::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
+                    }
+                }
+                break;
+            case Format::BOTTOM_UP:
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        Format::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
+                    }
+                }
+                break;
+        }
     }
 
 private:
@@ -171,11 +307,12 @@ private:
         }
     }
 
-private:
+public:
     const int width;
     const int height;
     const bool enable_oit;
 
+private:
     PixelBuffer* pixel_buffer; // per-pixel buffer
     PerPixelListBuffer* pplist_buffer; // per-pixel linked list buffer
     bool pplist_buffer_touched = false; // whether the pplist buffer has been touched since last clear
