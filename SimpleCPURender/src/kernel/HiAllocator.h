@@ -7,7 +7,7 @@
 #include "HiMemoryPool.h"
 
 
-template <int block_size, class T>
+template <int block_size, typename T>
 class HiAllocator{
 public:
     constexpr static int block_size = block_size;
@@ -41,7 +41,7 @@ public:
     }
 
     // allocate memory for an object of type `T`
-    // @return the pointer to the object
+    // @return  the pointer to the object
     T* Allocate(){
         if (available_blocks.empty()) FetchBlocks(1); // fetch a new block from the memory pool if no available block
         Block_t* block = available_blocks.front(); // get the first available block

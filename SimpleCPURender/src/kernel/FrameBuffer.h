@@ -124,11 +124,14 @@ public:
     // @param[in] backward_blend_alpha_threshold  when backward blending, stop if the alpha value of blended fragments
     //              reaches this threshold, which means the deeper fragments will be ignored.
     //              (only valid when `enable_oit` is true and `use_backward_pplist` is true)
-    FrameBuffer(int width, int height, int allocator_num,
-                const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
-                bool enable_oit = false,
-                bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f)
-        : width(width), height(height), enable_oit(enable_oit) {
+    FrameBuffer(
+        int width, int height, int allocator_num,
+        const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY,
+        bool enable_oit = false,
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        width(width), height(height), enable_oit(enable_oit)
+    {
         pixel_buffer = new PixelBuffer(width, height, bg_color, bg_depth);
         if (enable_oit) {
             if (use_backward_pplist)
@@ -238,7 +241,7 @@ public:
         return pixel_buffer->DepthAt(x, y);
     }
 
-    // get the color buffer directly
+    // get the color buffer directly (this function takes almost no time)
     // @note  the format of the color buffer is as below:
     // @note    - 'RGBA' 4 channels, 32 bits floating number per channel, 128 bits per pixel
     // @note    - 'A' channel can be any value, which should be IGNORED
@@ -270,7 +273,8 @@ public:
 
     // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
     // @param[in] order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
-    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}.
+    //              alpha channel will be always set to 1.0f
     // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     void WriteColorBuffer(void* ptr, Format::Order order, Format::Channel channel, Format::Type type) const {
         switch(order) {

@@ -4,13 +4,13 @@
 #include <cstdlib>
 
 
-struct BlockMeta{
+struct BlockMeta {
     int next_pos; // the next byte to be allocated
     int in_use; // the number of bytes in use
 };
 
 template <int size> // `size` is the size of the block, must be 2^n (n >= 4)
-class Block{
+class Block {
     using Block_t = Block<size>;
 
 public:

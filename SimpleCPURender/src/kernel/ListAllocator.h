@@ -42,27 +42,7 @@ private:
 };
 
 
-// template <int block_size, class T>
-// class BatchFreeAllocator: public HiAllocator<block_size, T> {
-// public:
-//     using HiAllocator_t = HiAllocator<block_size, T>;
-//     using MemoryPool_t = MemoryPool<block_size>;
-
-// public:
-//     BatchFreeAllocator() {}
-
-//     BatchFreeAllocator(MemoryPool_t* memory_pool, int pre_alloc)
-//         : HiAllocator_t(memory_pool, pre_alloc) {}
-
-//     BatchFreeAllocator(const BatchFreeAllocator&) = delete;
-//     BatchFreeAllocator& operator=(const BatchFreeAllocator&) = delete;
-
-//     virtual void Deallocate(T* ptr) override {} // do nothing
-
-// };
-
-
-constexpr static int block_size = 4096;
+constexpr int block_size = 4096;
 using ListNode = ThreadSafeInsertListNode<Fragment>;
 using ListAllocator = BatchFreeAllocator<block_size, ListNode>;
 using ListAllocatorGroup = AllocatorGroup<ListAllocator>;

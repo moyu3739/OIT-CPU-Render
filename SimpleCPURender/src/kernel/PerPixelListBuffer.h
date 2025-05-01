@@ -9,7 +9,7 @@
 
 
 class PerPixelListBuffer {
-private:
+protected:
     using PerPixelList = ThreadSafeInsertList<Fragment>;
 
 public:

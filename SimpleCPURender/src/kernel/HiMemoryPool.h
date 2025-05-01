@@ -9,7 +9,7 @@
 
 
 template <int block_size>
-class MemoryPool{
+class MemoryPool {
     using Block_t = Block<block_size>;
     
 public:

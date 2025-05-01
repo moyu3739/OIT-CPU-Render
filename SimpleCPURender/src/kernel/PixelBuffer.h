@@ -3,15 +3,10 @@
 #include <mutex>
 #include <memory>
 #include <glm/glm.hpp>
+#include "Primitive.h"
 
 
 class PixelBuffer {
-private:
-    struct Pixel {
-        glm::vec3 color;
-        float depth;
-    };
-
 public:
     PixelBuffer(int width, int height, const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY)
     : width(width), height(height), bg_pixel{bg_color, bg_depth} {
