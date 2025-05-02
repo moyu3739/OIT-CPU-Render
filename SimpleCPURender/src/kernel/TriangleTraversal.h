@@ -60,10 +60,10 @@ public:
         int width, int height, int pixel_x, int pixel_y,
         const glm::vec4& screen_pos_a, const glm::vec4& screen_pos_b, float half_thickness = 0.5f
     ) {
-        float pixel_x_a = Screen2PixelFloat(screen_pos_a.x, width);
-        float pixel_y_a = Screen2PixelFloat(screen_pos_a.y, height);
-        float pixel_x_b = Screen2PixelFloat(screen_pos_b.x, width);
-        float pixel_y_b = Screen2PixelFloat(screen_pos_b.y, height);
+        float pixel_x_a = ut::Screen2PixelFloat(screen_pos_a.x, width);
+        float pixel_y_a = ut::Screen2PixelFloat(screen_pos_a.y, height);
+        float pixel_x_b = ut::Screen2PixelFloat(screen_pos_b.x, width);
+        float pixel_y_b = ut::Screen2PixelFloat(screen_pos_b.y, height);
 
         // assume the formula of edge ab is: Ax + By + C = 0
         float A = pixel_y_b - pixel_y_a;
@@ -108,8 +108,8 @@ public:
         int width, int height, int pixel_x, int pixel_y,
         const glm::vec4& screen_pos_v, float half_thickness = 0.5f
     ) {
-        float pixel_x_v = Screen2PixelFloat(screen_pos_v.x, width);
-        float pixel_y_v = Screen2PixelFloat(screen_pos_v.y, height);
+        float pixel_x_v = ut::Screen2PixelFloat(screen_pos_v.x, width);
+        float pixel_y_v = ut::Screen2PixelFloat(screen_pos_v.y, height);
 
         float dx = std::abs(pixel_x - pixel_x_v);
         float dy = std::abs(pixel_y - pixel_y_v);

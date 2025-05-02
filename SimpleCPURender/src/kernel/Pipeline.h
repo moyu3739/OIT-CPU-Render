@@ -96,7 +96,7 @@ public:
         }
 
         int f_num = vertex_buffer->size() / 3;
-        std::vector<int> split_points = RangeSplit(0, f_num, thread_num);
+        std::vector<int> split_points = ut::RangeSlice(0, f_num, thread_num);
         std::vector<std::thread> threads;
         if (use_oit) { // use OIT
             for (int i = 0; i < thread_num; i++){
@@ -203,10 +203,10 @@ private:
         glm::vec4 screen_pos_v2 = vs_output[2]->__position__ / w2;
 
         // calculate bounding box
-        int pixel_min_x = Screen2Pixel(std::min(screen_pos_v0.x, std::min(screen_pos_v1.x, screen_pos_v2.x)), width);
-        int pixel_max_x = Screen2Pixel(std::max(screen_pos_v0.x, std::max(screen_pos_v1.x, screen_pos_v2.x)), width);
-        int pixel_min_y = Screen2Pixel(std::min(screen_pos_v0.y, std::min(screen_pos_v1.y, screen_pos_v2.y)), height);
-        int pixel_max_y = Screen2Pixel(std::max(screen_pos_v0.y, std::max(screen_pos_v1.y, screen_pos_v2.y)), height);
+        int pixel_min_x = ut::Screen2Pixel(std::min(screen_pos_v0.x, std::min(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_max_x = ut::Screen2Pixel(std::max(screen_pos_v0.x, std::max(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_min_y = ut::Screen2Pixel(std::min(screen_pos_v0.y, std::min(screen_pos_v1.y, screen_pos_v2.y)), height);
+        int pixel_max_y = ut::Screen2Pixel(std::max(screen_pos_v0.y, std::max(screen_pos_v1.y, screen_pos_v2.y)), height);
 
         // clip bounding box
         pixel_min_x = std::max(0, pixel_min_x);
@@ -218,8 +218,8 @@ private:
         for (int x = pixel_min_x; x <= pixel_max_x; x++){
             for (int y = pixel_min_y; y <= pixel_max_y; y++){
                 // map pixel to clipping space, where (-1, 1) is visible region
-                float screen_x = Pixel2Screen(x, width);
-                float screen_y = Pixel2Screen(y, height);
+                float screen_x = ut::Pixel2Screen(x, width);
+                float screen_y = ut::Pixel2Screen(y, height);
 
                 // barycentric coordinates
                 glm::vec3 barycentric= glm::inverse(

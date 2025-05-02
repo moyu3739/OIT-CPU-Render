@@ -127,7 +127,7 @@ public:
         glm::vec3 diffuse = (kd * glm::abs(glm::dot(rinput.world_normal, light_dir))) * rinput.color * light_color;
         glm::vec3 color = ambient + diffuse;
 
-        output.__color__ = glm::vec4(color, Clamp(Linear(-1.5f, 0.5f, 1.5f, 0.05, rinput.world_pos.y), 0.0f, 1.0f));
+        output.__color__ = glm::vec4(color, ut::Clamp(Linear(-1.5f, 0.5f, 1.5f, 0.05, rinput.world_pos.y), 0.0f, 1.0f));
         // output.__color__ = glm::vec4(color, 0.3f);
     }
 

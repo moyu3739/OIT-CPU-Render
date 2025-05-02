@@ -7,20 +7,20 @@
 
 
 glm::vec4 ImageTexture::Wrapper::WrapRepeat(int x, int y, int width, int height, glm::vec4 data[], const glm::vec4& border_colo0r) {
-    x = EuMod(x, width);
-    y = EuMod(y, height);
+    x = ut::EuMod(x, width);
+    y = ut::EuMod(y, height);
     return data[y * width + x];
 }
 
 glm::vec4 ImageTexture::Wrapper::WrapClampToEdge(int x, int y, int width, int height, glm::vec4 data[], const glm::vec4& border_color) {
-    x = Clamp(x, 0, width - 1);
-    y = Clamp(y, 0, height - 1);
+    x = ut::Clamp(x, 0, width - 1);
+    y = ut::Clamp(y, 0, height - 1);
     return data[y * width + x];
 }
 
 glm::vec4 ImageTexture::Wrapper::WrapMirroredRepeat(int x, int y, int width, int height, glm::vec4 data[], const glm::vec4& border_color) {
-    x = MrrMod(x, width);
-    y = MrrMod(y, height);
+    x = ut::MrrMod(x, width);
+    y = ut::MrrMod(y, height);
     return data[y * width + x];
 }
 

@@ -3,6 +3,8 @@
 #include <thread>
 
 
+namespace ut {
+
 // check and delete
 template <typename T>
 inline void CheckDel(T*& ptr){
@@ -52,12 +54,12 @@ inline int MrrMod(int x, int m){
     return r < m ? r : 2 * m - r - 1;
 }
 
-// split the range [`begin`, `start`) into `n` parts
+// split the range [`begin`, `start`) into `n` slices
 // @param[in] begin  the begin of the range
 // @param[in] start  the end of the range
 // @param[in] n  the number of parts
-// @return  the split points (size = `n` + 1)
-inline std::vector<int> RangeSplit(int begin, int start, int n) {
+// @return  the splitting points (size = `n` + 1, include `begin` at index 0 and `start` at index `n`)
+inline std::vector<int> RangeSlice(int begin, int start, int n) {
     std::vector<int> res(n + 1);
     for (int i = 0; i <= n; i++) res[i] = begin + (start - begin) * i / n;
     return res;
@@ -78,8 +80,5 @@ inline float Pixel2Screen(int pixel, int range){
     return (2.0f * pixel + 1.0f) / range - 1.0f;
 }
 
-#define StartThread(name, statements) \
-std::thread name([&](){ \
-    statements \
-});
+}
 

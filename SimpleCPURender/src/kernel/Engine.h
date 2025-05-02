@@ -306,10 +306,10 @@ public:
         assert(frame_buffer_manager->GetBufferNumber() >= 2);
 
         // start to render
-        StartThread( thread_render,
+        std::thread thread_render([&](){ \
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
-        );
+        });
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
         frontend->LoadFromFrameBuffer(front_frame_buffer);
@@ -328,18 +328,18 @@ public:
         assert(frame_buffer_manager->GetBufferNumber() >= 2);
 
         // start to render
-        StartThread( thread_render,
+        std::thread thread_render([&](){ \
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
-        )
+        });
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
         frontend->LoadFromFrameBuffer(front_frame_buffer);
         // start to clear
-        StartThread( thread_clear,
+        std::thread thread_clear([&](){ \
             FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
             front_frame_buffer->Clear();
-        );
+        });
         // output
         frontend->Output(info);
         // wait render thread and clear thread
@@ -354,15 +354,15 @@ public:
         assert(frame_buffer_manager->GetBufferNumber() >= 3);
 
         // start to render
-        StartThread( thread_render,
+        std::thread thread_render([&](){ \
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
-        );
+        });
         // start to clear
-        StartThread( thread_clear, 
+        std::thread thread_clear([&](){ \
             FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
             front_frame_buffer->Clear();
-        );
+        });
         // load buffer
         FrameBuffer* load_frame_buffer = frame_buffer_manager->GetBufferAt(1);
         frontend->LoadFromFrameBuffer(load_frame_buffer);
@@ -381,20 +381,20 @@ public:
         assert(frontend->GetBufferNumber() >= 2);
 
         // start to render
-        StartThread( thread_render,
+        std::thread thread_render([&](){ \
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
-        );
+        });
         // start to load buffer
-        StartThread( thread_load,
+        std::thread thread_load([&](){ \
             FrameBuffer* load_frame_buffer = frame_buffer_manager->GetBufferAt(1);
             frontend->LoadFromFrameBuffer(load_frame_buffer);
-        );
+        });
         // start to clear
-        StartThread( thread_clear,
+        std::thread thread_clear([&](){ \
             FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
             front_frame_buffer->Clear();
-        )
+        });
         // output
         frontend->Output(info);
         // wait render thread, load thread and clear thread

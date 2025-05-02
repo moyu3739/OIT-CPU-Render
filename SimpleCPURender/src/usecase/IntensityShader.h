@@ -123,7 +123,7 @@ public:
         glm::vec3 diffuse = (kd * glm::abs(glm::dot(rinput.world_normal, light_dir))) * frag_color * light_color;
         glm::vec3 color = ambient + diffuse;
 
-        // output_wrapper.__color__ = glm::vec4(color, Clamp(rinput.world_pos.y / 10.0f + 0.7f, 0.0f, 1.0f));
+        // output_wrapper.__color__ = glm::vec4(color, ut::Clamp(rinput.world_pos.y / 10.0f + 0.7f, 0.0f, 1.0f));
         output.__color__ = glm::vec4(color, 0.3f);
     }
 
