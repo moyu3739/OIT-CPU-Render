@@ -6,6 +6,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#undef max
+#undef min
+
 
 class ShapeVertexShader: public VertexShader{
 public:

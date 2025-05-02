@@ -5,6 +5,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#undef max
+#undef min
+
 
 class IntensityVertexShader: public VertexShader{
 public:

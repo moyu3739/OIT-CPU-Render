@@ -14,6 +14,9 @@
 #include "TriangleTraversal.h"
 #include "FrameBuffer.h"
 
+#undef max
+#undef min
+
 
 class Pipeline {
 public:

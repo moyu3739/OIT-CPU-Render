@@ -5,8 +5,12 @@
 #include <mutex>
 #include <thread>
 #include <opencv2/opencv.hpp>
+#include <windows.h>
+#include <gdiplus.h>
 #include "Primitive.h"
 #include "FrameBuffer.h"
+
+#pragma comment(lib, "gdiplus.lib")
 
 
 class Frontend {
@@ -258,4 +262,175 @@ private:
     void* data_front;
     void* data_back;
 };
+
+
+// Windows GDI+ single buffer displayer
+// @note  remember to delete, or it will cause crash when exit
+// class WindowsSingleBufferDisplayer: public Displayer {
+// public:
+//     WindowsSingleBufferDisplayer(const std::string& windowName = "GDI+ Render", int width = 800, int height = 600)
+//         : m_windowName(windowName), m_width(width), m_height(height), m_data(nullptr), m_hWnd(NULL)
+//     {
+//         // 初始化GDI+
+//         Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+//         Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+        
+//         // 创建窗口
+//         HINSTANCE hInstance = GetModuleHandle(NULL);
+        
+//         // 注册窗口类
+//         WNDCLASSEX wcex = {0};
+//         wcex.cbSize = sizeof(WNDCLASSEX);
+//         wcex.style = CS_HREDRAW | CS_VREDRAW;
+//         wcex.lpfnWndProc = WindowProc;
+//         wcex.hInstance = hInstance;
+//         wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+//         wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
+//         wcex.lpszClassName = L"WindowsSingleBufferDisplayer";
+//         RegisterClassEx(&wcex);
+        
+//         // 创建窗口
+//         m_hWnd = CreateWindow(L"WindowsSingleBufferDisplayer", 
+//                               std::wstring(m_windowName.begin(), m_windowName.end()).c_str(),
+//                               WS_OVERLAPPEDWINDOW,
+//                               CW_USEDEFAULT, CW_USEDEFAULT, 
+//                               m_width, m_height, 
+//                               NULL, NULL, hInstance, NULL);
+        
+//         if (m_hWnd)
+//         {
+//             // 存储this指针以便在窗口过程中使用
+//             SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
+//             ShowWindow(m_hWnd, SW_SHOW);
+//             UpdateWindow(m_hWnd);
+//         }
+        
+//         // 创建位图
+//         m_pBitmap = new Gdiplus::Bitmap(m_width, m_height, PixelFormat32bppARGB);
+//     }
+
+//     virtual ~WindowsSingleBufferDisplayer() {
+//         if (m_data != nullptr) FrameBuffer::DeleteColorBuffer(m_data);
+        
+//         if (m_pBitmap) {
+//             delete m_pBitmap;
+//             m_pBitmap = nullptr;
+//         }
+        
+//         if (m_hWnd) {
+//             DestroyWindow(m_hWnd);
+//             m_hWnd = NULL;
+//         }
+        
+//         // 关闭GDI+
+//         Gdiplus::GdiplusShutdown(m_gdiplusToken);
+//     }
+
+//     virtual int GetBufferNumber() const override {
+//         return 1;
+//     }
+
+//     virtual void LoadFromFrameBuffer(const FrameBuffer* frame_buffer) override {
+//         static Format format{Format::TOP_DOWN, Format::BGRA, Format::UINT8};
+
+//         if (m_width != frame_buffer->width || m_height != frame_buffer->height) {
+//             m_width = frame_buffer->width;
+//             m_height = frame_buffer->height;
+            
+//             // 调整窗口大小
+//             SetWindowPos(m_hWnd, NULL, 0, 0, m_width, m_height, SWP_NOMOVE | SWP_NOZORDER);
+            
+//             // 重新创建位图
+//             if (m_pBitmap) {
+//                 delete m_pBitmap;
+//             }
+//             m_pBitmap = new Gdiplus::Bitmap(m_width, m_height, PixelFormat32bppARGB);
+            
+//             // 重新分配缓冲区
+//             if (m_data != nullptr) {
+//                 frame_buffer->DeleteColorBuffer(m_data);
+//             }
+//             m_data = FrameBuffer::NewColorBuffer(m_width, m_height, format);
+//         }
+
+//         // 从FrameBuffer写入数据
+//         frame_buffer->WriteColorBuffer(m_data, format);
+        
+//         // 更新位图
+//         Gdiplus::BitmapData bitmapData;
+//         Gdiplus::Rect rect(0, 0, m_width, m_height);
+        
+//         m_pBitmap->LockBits(&rect, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData);
+        
+//         // 复制数据到位图
+//         unsigned char* src = static_cast<unsigned char*>(m_data);
+//         unsigned char* dst = static_cast<unsigned char*>(bitmapData.Scan0);
+        
+//         for (int y = 0; y < m_height; y++) {
+//             memcpy(dst + y * bitmapData.Stride, src + y * m_width * 4, m_width * 4);
+//         }
+        
+//         m_pBitmap->UnlockBits(&bitmapData);
+        
+//         // 触发重绘
+//         InvalidateRect(m_hWnd, NULL, FALSE);
+//     }
+
+//     virtual void Show(int delay = 1) override {
+//         // 处理消息循环
+//         MSG msg;
+//         while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+//             TranslateMessage(&msg);
+//             DispatchMessage(&msg);
+//         }
+        
+//         // 模拟延迟
+//         if (delay > 0) {
+//             Sleep(delay);
+//         }
+//     }
+
+//     virtual void Output(unsigned long long info) override {
+//         Show(info);
+//     }
+
+//     virtual void RotateBuffer() override {
+//         // 单缓冲显示器无需轮换缓冲区
+//     }
+
+// private:
+//     std::string m_windowName;
+//     int m_width;
+//     int m_height;
+//     void* m_data;
+//     HWND m_hWnd;
+//     ULONG_PTR m_gdiplusToken;
+//     Gdiplus::Bitmap* m_pBitmap;
+
+//     // 窗口过程
+//     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+//         WindowsSingleBufferDisplayer* pThis = reinterpret_cast<WindowsSingleBufferDisplayer*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        
+//         switch (message) {
+//         case WM_PAINT:
+//             if (pThis && pThis->m_pBitmap) {
+//                 PAINTSTRUCT ps;
+//                 HDC hdc = BeginPaint(hWnd, &ps);
+                
+//                 // 创建Graphics对象用于绘制
+//                 Gdiplus::Graphics graphics(hdc);
+//                 graphics.DrawImage(pThis->m_pBitmap, 0, 0);
+                
+//                 EndPaint(hWnd, &ps);
+//             }
+//             return 0;
+            
+//         case WM_DESTROY:
+//             PostQuitMessage(0);
+//             return 0;
+//         }
+        
+//         return DefWindowProc(hWnd, message, wParam, lParam);
+//     }
+// };
 
