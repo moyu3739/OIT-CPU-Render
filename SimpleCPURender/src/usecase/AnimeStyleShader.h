@@ -5,9 +5,6 @@
 #include "Shader.h"
 #include "Texture.h"
 
-#undef max
-#undef min
-
 
 class AnimeStyleVertexShader: public VertexShader{
 public:
@@ -77,8 +74,8 @@ public:
     ~AnimeStyleFragmentShader() {}
 
     glm::vec3 RGB2HSV(const glm::vec3& rgb) {
-        float cmax = std::max(rgb.r, std::max(rgb.g, rgb.b));
-        float cmin = std::min(rgb.r, std::min(rgb.g, rgb.b));
+        float cmax = ut::Max(rgb.r, ut::Max(rgb.g, rgb.b));
+        float cmin = ut::Min(rgb.r, ut::Min(rgb.g, rgb.b));
         float delta = cmax - cmin;
         glm::vec3 hsv;
 

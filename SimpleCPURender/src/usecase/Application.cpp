@@ -135,7 +135,7 @@ void Application::ResetNormal(const std::string& model_name, bool left_handed){
 
 void Application::RenderFrame() {
     auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 0, true);
-    engine->SerialRender(0);
+    engine->SerialRender(0, 0);
 }
 
 void Application::RenderAnimation(float lasting) {
@@ -168,7 +168,7 @@ void Application::RenderAnimation(float lasting) {
 
         // render and show
         float start_render = tm.ReadTimer();
-        engine->PipelinedRender();
+        engine->PipelinedRender(0, 1);
         float duration_render = tm.ReadTimer() - start_render;
         total_render_time += duration_render;
 

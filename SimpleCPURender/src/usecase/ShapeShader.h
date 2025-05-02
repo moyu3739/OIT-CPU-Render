@@ -126,7 +126,7 @@ public:
 
         glm::vec3 ambient = ka * rinput.color;
         glm::vec3 light_dir = glm::normalize(light_pos - rinput.world_pos);
-        // glm::vec3 diffuse = (kd * glm::max(glm::dot(rinput.world_normal, light_dir), 0.0f)) * rinput.color * light_color;
+        // glm::vec3 diffuse = (kd * ut::Max(glm::dot(rinput.world_normal, light_dir), 0.0f)) * rinput.color * light_color;
         glm::vec3 diffuse = (kd * glm::abs(glm::dot(rinput.world_normal, light_dir))) * rinput.color * light_color;
         glm::vec3 color = ambient + diffuse;
 

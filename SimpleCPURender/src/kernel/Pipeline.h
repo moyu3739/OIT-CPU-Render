@@ -14,9 +14,6 @@
 #include "TriangleTraversal.h"
 #include "FrameBuffer.h"
 
-#undef max
-#undef min
-
 
 class Pipeline {
 public:
@@ -206,16 +203,16 @@ private:
         glm::vec4 screen_pos_v2 = vs_output[2]->__position__ / w2;
 
         // calculate bounding box
-        int pixel_min_x = ut::Screen2Pixel(std::min(screen_pos_v0.x, std::min(screen_pos_v1.x, screen_pos_v2.x)), width);
-        int pixel_max_x = ut::Screen2Pixel(std::max(screen_pos_v0.x, std::max(screen_pos_v1.x, screen_pos_v2.x)), width);
-        int pixel_min_y = ut::Screen2Pixel(std::min(screen_pos_v0.y, std::min(screen_pos_v1.y, screen_pos_v2.y)), height);
-        int pixel_max_y = ut::Screen2Pixel(std::max(screen_pos_v0.y, std::max(screen_pos_v1.y, screen_pos_v2.y)), height);
+        int pixel_min_x = ut::Screen2Pixel(ut::Min(screen_pos_v0.x, ut::Min(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_max_x = ut::Screen2Pixel(ut::Max(screen_pos_v0.x, ut::Max(screen_pos_v1.x, screen_pos_v2.x)), width);
+        int pixel_min_y = ut::Screen2Pixel(ut::Min(screen_pos_v0.y, ut::Min(screen_pos_v1.y, screen_pos_v2.y)), height);
+        int pixel_max_y = ut::Screen2Pixel(ut::Max(screen_pos_v0.y, ut::Max(screen_pos_v1.y, screen_pos_v2.y)), height);
 
         // clip bounding box
-        pixel_min_x = std::max(0, pixel_min_x);
-        pixel_max_x = std::min(width - 1, pixel_max_x);
-        pixel_min_y = std::max(0, pixel_min_y);
-        pixel_max_y = std::min(height - 1, pixel_max_y);
+        pixel_min_x = ut::Max(0, pixel_min_x);
+        pixel_max_x = ut::Min(width - 1, pixel_max_x);
+        pixel_min_y = ut::Max(0, pixel_min_y);
+        pixel_max_y = ut::Min(height - 1, pixel_max_y);
 
         // rasterization
         for (int x = pixel_min_x; x <= pixel_max_x; x++){

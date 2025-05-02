@@ -52,7 +52,7 @@ public:
 
         // half-shrink `available_blocks` if use-rate is less than 1/4
         if (total_blocks > pre_alloc // make sure the total number of blocks is at least `pre_alloc`
-            && available_blocks.size() >  3 * total_blocks / 4) HalfShrink();
+            && total_blocks - available_blocks.size() <= total_blocks / 4) HalfShrink();
     }
 
 protected:

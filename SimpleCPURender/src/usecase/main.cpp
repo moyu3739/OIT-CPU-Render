@@ -73,7 +73,7 @@
 
 //         // load buffer
 //         float start_load = tm.ReadTimer();
-//         displayer.LoadFromFrameBuffer(&frame_buffer);
+//         displayer.Load(&frame_buffer);
 //         float duration_load = tm.ReadTimer() - start_load;
 //         total_load_time += duration_load;
 //         // show
@@ -185,7 +185,7 @@
 //         // load buffer
 //         FrameBuffer* front_buffer = frame_buffer_manager.GetFrontBuffer();
 //         float start_load = tm.ReadTimer();
-//         displayer.LoadFromFrameBuffer(front_buffer);
+//         displayer.Load(front_buffer);
 //         float duration_load = tm.ReadTimer() - start_load;
 //         total_load_time += duration_load;
 //         // show
@@ -303,7 +303,7 @@
 //         // load buffer
 //         FrameBuffer* front_buffer = frame_buffer_manager.GetFrontBuffer();
 //         float start_load = tm.ReadTimer();
-//         displayer.LoadFromFrameBuffer(front_buffer);
+//         displayer.Load(front_buffer);
 //         float duration_load = tm.ReadTimer() - start_load;
 //         total_load_time += duration_load;
 
@@ -440,7 +440,7 @@
 //         // load buffer
 //         FrameBuffer* load_buffer = frame_buffer_manager.GetMidBuffer();
 //         float start_load = tm.ReadTimer();
-//         displayer.LoadFromFrameBuffer(load_buffer);
+//         displayer.Load(load_buffer);
 //         float duration_load = tm.ReadTimer() - start_load;
 //         total_load_time += duration_load;
 
@@ -557,7 +557,7 @@
 //             FrameBuffer* load_buffer = frame_buffer_manager.GetMidBuffer();
 
 //             float start_load = tm.ReadTimer();
-//             displayer.LoadFromFrameBuffer(load_buffer);
+//             displayer.Load(load_buffer);
 //             duration_load = tm.ReadTimer() - start_load;
 //             total_load_time += duration_load;
 //         });

@@ -121,7 +121,7 @@ public:
             case 1:
             case 2:
             case 3:
-                return 1;
+                return 0;
             case 4:
                 return 2;
             default:
@@ -204,9 +204,9 @@ public:
             case 1:
             case 2:
             case 3:
-                frontend = new BuildinSingleBufferDisplayer; break;
+                frontend = new OpencvSingleBufferDisplayer; break;
             case 4:
-                frontend = new BuildinDoubleBufferDisplayer; break;
+                frontend = new OpencvDoubleBufferDisplayer; break;
             default:
                 assert(false);
         }
@@ -270,7 +270,7 @@ public:
 
     // serialized do render and output
     // @param[in] info  info for render
-    void SerialRender(unsigned long long info = 1) {
+    void SerialRender(unsigned long long load_info = 0, unsigned long long output_info = 0) {
         // clear buffer
         FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer(); // get back buffer
         back_frame_buffer->Clear();
@@ -279,42 +279,42 @@ public:
         frame_buffer_manager->RotateBuffer();
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer(); // get front buffer
-        frontend->LoadFromFrameBuffer(front_frame_buffer);
+        frontend->Load(front_frame_buffer, load_info);
         // output
-        frontend->Output(info);
+        frontend->Output(output_info);
     }
 
     // parallelly do render and output
     // @param[in] info  info for render
-    void PipelinedRender(unsigned long long info = 1) {
+    void PipelinedRender(unsigned long long load_info = 0, unsigned long long output_info = 0) {
         switch(pipeline_level) {
-            case 0: PipelinedRenderLevel0(info); break;
-            case 1: PipelinedRenderLevel1(info); break;
-            case 2: PipelinedRenderLevel2(info); break;
-            case 3: PipelinedRenderLevel3(info); break;
-            case 4: PipelinedRenderLevel4(info); break;
+            case 0: PipelinedRenderLevel0(load_info, output_info); break;
+            case 1: PipelinedRenderLevel1(load_info, output_info); break;
+            case 2: PipelinedRenderLevel2(load_info, output_info); break;
+            case 3: PipelinedRenderLevel3(load_info, output_info); break;
+            case 4: PipelinedRenderLevel4(load_info, output_info); break;
             default: assert(false); break;
         }
     }
 
     // actually serialized do render
-    void PipelinedRenderLevel0(unsigned long long info) {
-        SerialRender(info);
+    void PipelinedRenderLevel0(unsigned long long load_info, unsigned long long output_info) {
+        SerialRender(load_info, output_info);
     }
 
-    void PipelinedRenderLevel1(unsigned long long info) {
+    void PipelinedRenderLevel1(unsigned long long load_info, unsigned long long output_info) {
         assert(frame_buffer_manager->GetBufferNumber() >= 2);
 
         // start to render
-        std::thread thread_render([&](){ \
+        std::thread thread_render([&](){
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
         });
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
-        frontend->LoadFromFrameBuffer(front_frame_buffer);
+        frontend->Load(front_frame_buffer, output_info);
         // output
-        frontend->Output(info);
+        frontend->Output(output_info);
         // clear buffer
         front_frame_buffer->Clear();
         // wait render thread
@@ -324,24 +324,23 @@ public:
         frontend->RotateBuffer();
     }
 
-    void PipelinedRenderLevel2(unsigned long long info) {
+    void PipelinedRenderLevel2(unsigned long long load_info, unsigned long long output_info) {
         assert(frame_buffer_manager->GetBufferNumber() >= 2);
 
         // start to render
-        std::thread thread_render([&](){ \
+        std::thread thread_render([&](){
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
         });
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
-        frontend->LoadFromFrameBuffer(front_frame_buffer);
+        frontend->Load(front_frame_buffer, output_info);
         // start to clear
-        std::thread thread_clear([&](){ \
-            FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
+        std::thread thread_clear([&](){
             front_frame_buffer->Clear();
         });
         // output
-        frontend->Output(info);
+        frontend->Output(output_info);
         // wait render thread and clear thread
         thread_render.join();
         thread_clear.join();
@@ -350,24 +349,24 @@ public:
         frontend->RotateBuffer();
     }
 
-    void PipelinedRenderLevel3(unsigned long long info) {
+    void PipelinedRenderLevel3(unsigned long long load_info, unsigned long long output_info) {
         assert(frame_buffer_manager->GetBufferNumber() >= 3);
 
         // start to render
-        std::thread thread_render([&](){ \
+        std::thread thread_render([&](){
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
         });
         // start to clear
-        std::thread thread_clear([&](){ \
+        std::thread thread_clear([&](){
             FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
             front_frame_buffer->Clear();
         });
         // load buffer
         FrameBuffer* load_frame_buffer = frame_buffer_manager->GetBufferAt(1);
-        frontend->LoadFromFrameBuffer(load_frame_buffer);
+        frontend->Load(load_frame_buffer, output_info);
         // output
-        frontend->Output(info);
+        frontend->Output(output_info);
         // wait render thread and clear thread
         thread_render.join();
         thread_clear.join();
@@ -376,27 +375,27 @@ public:
         frontend->RotateBuffer();
     }
 
-    void PipelinedRenderLevel4(unsigned long long info) {
+    void PipelinedRenderLevel4(unsigned long long load_info, unsigned long long output_info) {
         assert(frame_buffer_manager->GetBufferNumber() >= 3);
         assert(frontend->GetBufferNumber() >= 2);
 
         // start to render
-        std::thread thread_render([&](){ \
+        std::thread thread_render([&](){
             FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer();
             pipeline_manager->Render(back_frame_buffer);
         });
         // start to load buffer
-        std::thread thread_load([&](){ \
+        std::thread thread_load([&](){
             FrameBuffer* load_frame_buffer = frame_buffer_manager->GetBufferAt(1);
-            frontend->LoadFromFrameBuffer(load_frame_buffer);
+            frontend->Load(load_frame_buffer, output_info);
         });
         // start to clear
-        std::thread thread_clear([&](){ \
+        std::thread thread_clear([&](){
             FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer();
             front_frame_buffer->Clear();
         });
         // output
-        frontend->Output(info);
+        frontend->Output(output_info);
         // wait render thread, load thread and clear thread
         thread_render.join();
         thread_load.join();

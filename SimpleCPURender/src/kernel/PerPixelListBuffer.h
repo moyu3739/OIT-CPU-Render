@@ -14,7 +14,7 @@ protected:
 
 public:
     PerPixelListBuffer(int width, int height, int allocator_num)
-    : width(width), height(height), allocator_group(allocator_num, 64) {
+    : width(width), height(height), allocator_group(allocator_num, 1) {
         pplist_buffer = new PerPixelList[width * height];
     }
 

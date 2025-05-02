@@ -5,6 +5,16 @@
 
 namespace ut {
 
+template <typename T>
+inline const T& Max(const T& a, const T& b){
+    return a > b ? a : b;
+}
+
+template <typename T>
+inline const T& Min(const T& a, const T& b){
+    return a < b ? a : b;
+}
+
 // check and delete
 template <typename T>
 inline void CheckDel(T*& ptr){
