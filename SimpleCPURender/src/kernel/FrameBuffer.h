@@ -20,8 +20,10 @@ struct Format {
     enum Channel {
         RGB,
         RGBA,
+        ARGB,
         BGR,
-        BGRA
+        BGRA,
+        ABGR
     };
     enum Type {
         UINT8,
@@ -44,7 +46,9 @@ struct Format {
             case RGB:
             case BGR: return 3;
             case RGBA:
-            case BGRA: return 4;
+            case ARGB:
+            case BGRA:
+            case ABGR: return 4;
         }
     }
 
@@ -90,6 +94,12 @@ struct Format {
                 WriteOneData(color.b, ptr, type);
                 WriteOneData(1.0f, ptr, type); // alpha channel
                 break;
+            case ARGB:
+                WriteOneData(1.0f, ptr, type); // alpha channel
+                WriteOneData(color.r, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.b, ptr, type);
+                break;
             case BGR:
                 WriteOneData(color.b, ptr, type);
                 WriteOneData(color.g, ptr, type);
@@ -100,6 +110,12 @@ struct Format {
                 WriteOneData(color.g, ptr, type);
                 WriteOneData(color.r, ptr, type);
                 WriteOneData(1.0f, ptr, type); // alpha channel
+                break;
+            case ABGR:
+                WriteOneData(1.0f, ptr, type); // alpha channel
+                WriteOneData(color.b, ptr, type);
+                WriteOneData(color.g, ptr, type);
+                WriteOneData(color.r, ptr, type);
                 break;
         }
     }
@@ -160,15 +176,14 @@ public:
         }
     }
 
-    // handle a new fragment with the given color and depth at (x, y).
+    // insert a fragment with the given color and depth at (`x`, `y`).
     // depend on whether OIT is enabled and the alpha value of the color,
-    // this function may cover the existing fragment or insert the new fragment to the per-pixel linked list
-    // @note assume the fragment has passed depth test
-    void HandleNewFragment_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
+    // this function may cover the existing fragment or insert the fragment to the per-pixel linked list
+    void InsertFragment_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
         if (!enable_oit || color.a > 0.9999f)
             CoverFragment_T(color, depth, x, y);
         else
-            InsertFragmentSorted_T(color, depth, x, y, thread_id);
+            InsertFragmentToList_T(color, depth, x, y, thread_id);
     }
 
     // cover the fragment at (x, y) with the given color and depth
@@ -251,7 +266,8 @@ public:
     }
 
     // create a new empty color buffer with the given frame size and format
-    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] channel  channel layout, 
+    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}
     // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     static void* NewColorBuffer(int width, int height, Format::Channel channel, Format::Type type) {
         return new unsigned char[width * height * Format::GetChannelSize(type) * Format::GetChannelNumber(channel)];
@@ -260,7 +276,8 @@ public:
     // create a new empty color buffer with the given frame size and format
     // @param[in] format  structure of format: {order, channel, type}
     // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
-    // @param[in] format.channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] format.channel  channel layout,
+    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}
     // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     static void* NewColorBuffer(int width, int height, const Format& format) {
         return NewColorBuffer(width, height, format.channel, format.type);
@@ -273,7 +290,8 @@ public:
 
     // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
     // @param[in] order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
-    // @param[in] channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}.
+    // @param[in] channel  channel layout,
+    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}.
     //              alpha channel will be always set to 1.0f
     // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     void WriteColorBuffer(void* ptr, Format::Order order, Format::Channel channel, Format::Type type) const {
@@ -298,7 +316,9 @@ public:
     // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
     // @param[in] format  structure of format: {order, channel, type}
     // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
-    // @param[in] format.channel  channel format, in {`Format::RGB`, `Format::RGBA`, `Format::BGR`, `Format::BGRA`}
+    // @param[in] format.channel  channel layout,
+    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}.
+    //              alpha channel will be always set to 1.0f
     // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
     void WriteColorBuffer(void* ptr, const Format& format) const {
         WriteColorBuffer(ptr, format.order, format.channel, format.type);
@@ -306,7 +326,7 @@ public:
 
 private:
     // insert a fragment to the per-pixel linked list by depth descending order
-    void InsertFragmentSorted_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
+    void InsertFragmentToList_T(const glm::vec4& color, float depth, int x, int y, int thread_id) {
         pplist_buffer->InsertSortedAt_T(Fragment{color, depth}, x, y, thread_id);
         pplist_buffer_touched = true;
     }

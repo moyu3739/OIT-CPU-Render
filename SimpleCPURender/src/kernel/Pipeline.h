@@ -252,7 +252,7 @@ private:
                     fragment_shader->Call(*fs_input, *fs_output);
 
                     if constexpr (use_oit)
-                        frame_buffer->HandleNewFragment_T(fs_output->__color__, screen_depth, x, y, thread_id);
+                        frame_buffer->InsertFragment_T(fs_output->__color__, screen_depth, x, y, thread_id);
                     else
                         frame_buffer->CoverFragment_T(fs_output->__color__, screen_depth, x, y);
                 }

@@ -147,7 +147,7 @@ public:
     AllocatorGroup& operator=(const AllocatorGroup&) = delete;
 
     // get the allocator at index `idx`
-    Allocator* GetAllocator(int idx) {
+    Allocator* GetAllocator(int idx) const {
         return allocators[idx];
     }
 

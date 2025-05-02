@@ -33,17 +33,25 @@ public:
         for (int i = 0; i < width * height; i++) pplist_buffer[i].ResetHead();
     }
 
+    void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) {
+        InsertSortedList_T(fragment, pplist_buffer[idx], thread_id);
+    }
+
     void InsertSortedAt_T(const Fragment& fragment, int x, int y, int thread_id) {
-        InsertSortedAt_T(fragment, y * width + x, thread_id);
+        InsertSortedList_T(fragment, pplist_buffer[y * width + x], thread_id);
+    }
+
+    void BlendAt(glm::vec3& base_color, float base_depth, int idx) const {
+        BlendList(base_color, base_depth, pplist_buffer[idx]);
     }
 
     void BlendAt(glm::vec3& base_color, float base_depth, int x, int y) const {
-        BlendAt(base_color, base_depth, y * width + x);
+        BlendList(base_color, base_depth, pplist_buffer[y * width + x]);
     }
 
-    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) = 0;
+    virtual void InsertSortedList_T(const Fragment& fragment, PerPixelList& pplist, int thread_id) const = 0;
 
-    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const = 0;
+    virtual void BlendList(glm::vec3& base_color, float base_depth, const PerPixelList& pplist) const = 0;
 
 protected:
     const int width;
@@ -63,9 +71,7 @@ public:
     ForwardPerPixelListBuffer(const ForwardPerPixelListBuffer&) = delete;
     ForwardPerPixelListBuffer& operator=(const ForwardPerPixelListBuffer&) = delete;
 
-    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) override {
-        auto& pplist = pplist_buffer[idx];
-
+    virtual void InsertSortedList_T(const Fragment& fragment, PerPixelList& pplist, int thread_id) const override {
         // if `pplist` is empty or `fragment.depth` is larger than the head node's depth,
         // keep trying inserting at head
         while (pplist.IsEmpty() || pplist.Begin()->depth < fragment.depth) {
@@ -92,9 +98,7 @@ public:
         }
     }
 
-    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const override {
-        const auto& pplist = pplist_buffer[idx];
-
+    virtual void BlendList(glm::vec3& base_color, float base_depth, const PerPixelList& pplist) const override {
         // skip fragments with depth larger than `base_depth`
         auto iter = pplist.Begin();
         while (iter != pplist.End() && iter->depth > base_depth) ++iter;
@@ -117,9 +121,7 @@ public:
     BackwardPerPixelListBuffer(const BackwardPerPixelListBuffer&) = delete;
     BackwardPerPixelListBuffer& operator=(const BackwardPerPixelListBuffer&) = delete;
 
-    virtual void InsertSortedAt_T(const Fragment& fragment, int idx, int thread_id) override {
-        auto& pplist = pplist_buffer[idx];
-
+    virtual void InsertSortedList_T(const Fragment& fragment, PerPixelList& pplist, int thread_id) const override {
         // if `pplist` is empty or `fragment.depth` is less than the head node's depth,
         // keep trying inserting at head
         while (pplist.IsEmpty() || pplist.Begin()->depth > fragment.depth) {
@@ -146,8 +148,7 @@ public:
         }
     }
 
-    virtual void BlendAt(glm::vec3& base_color, float base_depth, int idx) const override {
-        const auto& pplist = pplist_buffer[idx];
+    virtual void BlendList(glm::vec3& base_color, float base_depth, const PerPixelList& pplist) const override {
         // blend color
         glm::vec3 color_sum(0.0f);
         float alpha_sum = 0.0f;
