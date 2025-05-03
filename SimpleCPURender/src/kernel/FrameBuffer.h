@@ -1,15 +1,12 @@
 #pragma once
 
 #include <vector>
-#include <list>
 #include <atomic>
-// #include <cstdlib>
 #include <glm/glm.hpp>
 #include "utility.h"
 #include "Primitive.h"
 #include "PixelBuffer.h"
 #include "PerPixelListBuffer.h"
-#include "ListAllocator.h"
 
 
 struct Format {

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <mutex>
 #include <thread>
 #include <exception>
 #include <cassert>
 #include <glm/glm.hpp>
 #include "utility.h"
 #include "Shader.h"
+#include "TriangleTraversal.h"
 #include "PipelineManager.h"
 #include "FrameBufferManager.h"
 #include "Frontend.h"
@@ -19,7 +19,7 @@ public:
     // @param[in] height  height of the frame buffer
     // @param[in] render_thread_num  number of threads to render the pipelines
     // @param[in] blend_thread_num  number of threads to blend the frame buffer
-    // @param[in] pipeline_level  level of parallelism (0 - 4)
+    // @param[in] pipeline_level  level of pipelining (0 - 4)
     // @param[in] enable_oit  whether to enable order-independent transparency;
     //              if false, the frame buffer will always ignore alpha channel,
     //              which means fragment will be covered whenever it is in front of the existing fragment.
@@ -49,7 +49,7 @@ public:
     // @param[in] render_thread_num  number of threads to render the pipelines
     // @param[in] blend_thread_num  number of threads to blend the frame buffer
     // @param[in] frontend  frontend to use
-    // @param[in] pipeline_level  level of parallelism (0 - 4)
+    // @param[in] pipeline_level  level of pipelining (0 - 4)
     // @param[in] enable_oit  whether to enable order-independent transparency;
     //              if false, the frame buffer will always ignore alpha channel,
     //              which means fragment will be covered whenever it is in front of the existing fragment.
@@ -76,7 +76,7 @@ public:
 
     // @param[in] render_thread_num  number of threads to render the pipelines
     // @param[in] blend_thread_num  number of threads to blend the frame buffer
-    // @param[in] pipeline_level  level of parallelism (0 - 4)
+    // @param[in] pipeline_level  level of pipelining (0 - 4)
     Engine(
         PipelineManager* pipeline_manager,
         FrameBufferManager* frame_buffer_manager,
@@ -239,13 +239,28 @@ public:
     // create a pipeline with shaders
     // @param[in] vertex_shader  vertex shader
     // @param[in] fragment_shader  fragment shader
+    // @param[in] tt_type  build-in triangle traversal type to apply
+    // @param[in] is_transparent  whether the pipeline is transparent
+    // @return  pointer to the created pipeline
+    // @note  - Instances of the shaders and the triangle traversal filter would not be copied here,
+    //          which means user should pay attention to the lifetime of them.
+    // @note  - The pipeline manager would manage the created pipeline instance,
+    //          so user does not need to delete it manually.
+    Pipeline* CreatePipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader,
+                             TriangleTraversalType tt_type, bool is_transparent) {
+        return pipeline_manager->CreatePipeline(vertex_shader, fragment_shader, tt_type, is_transparent);
+    }
+
+    // create a pipeline with shaders
+    // @param[in] vertex_shader  vertex shader
+    // @param[in] fragment_shader  fragment shader
     // @param[in] triangle_traversal  triangle traversal filter
     // @param[in] is_transparent  whether the pipeline is transparent
     // @return  pointer to the created pipeline
     // @note  - Instances of the shaders and the triangle traversal filter would not be copied here,
-    //        which means user should pay attention to the lifetime of them.
+    //          which means user should pay attention to the lifetime of them.
     // @note  - The pipeline manager would manage the created pipeline instance,
-    //        so user does not need to delete it manually.
+    //          so user does not need to delete it manually.
     Pipeline* CreatePipeline(VertexShader* vertex_shader, FragmentShader* fragment_shader,
                              TriangleTraversal* triangle_traversal, bool is_transparent) {
         return pipeline_manager->CreatePipeline(vertex_shader, fragment_shader, triangle_traversal, is_transparent);
@@ -259,13 +274,30 @@ public:
     // @param[in] is_transparent  whether the pipeline is transparent
     // @return  pointer to the created pipeline
     // @note  - Instances of the vertex buffer, the shaders and the triangle traversal filter would not be copied here,
-    //        which means user should pay attention to the lifetime of them.
+    //          which means user should pay attention to the lifetime of them.
     // @note  - The pipeline manager would manage the created pipeline instance,
-    //        so user does not need to delete it manually.
+    //          so user does not need to delete it manually.
     Pipeline* CreatePipeline(const VertexBuffer& vertex_buffer, 
                              VertexShader* vertex_shader, FragmentShader* fragment_shader,
                              TriangleTraversalType tt_type, bool is_transparent) {
         return pipeline_manager->CreatePipeline(vertex_buffer, vertex_shader, fragment_shader, tt_type, is_transparent);
+    }
+
+    // create a pipeline with vertex buffer and shaders
+    // @param[in] vertex_buffer  vertex buffer
+    // @param[in] vertex_shader  vertex shader
+    // @param[in] fragment_shader  fragment shader
+    // @param[in] triangle_traversal  triangle traversal filter
+    // @param[in] is_transparent  whether the pipeline is transparent
+    // @return  pointer to the created pipeline
+    // @note  - Instances of the vertex buffer, the shaders and the triangle traversal filter would not be copied here,
+    //          which means user should pay attention to the lifetime of them.
+    // @note  - The pipeline manager would manage the created pipeline instance,
+    //          so user does not need to delete it manually.
+    Pipeline* CreatePipeline(const VertexBuffer& vertex_buffer, 
+                             VertexShader* vertex_shader, FragmentShader* fragment_shader,
+                             TriangleTraversal* triangle_traversal, bool is_transparent) {
+        return pipeline_manager->CreatePipeline(vertex_buffer, vertex_shader, fragment_shader, triangle_traversal, is_transparent);
     }
 
     // serialized do render and output

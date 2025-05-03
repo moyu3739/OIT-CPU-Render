@@ -89,7 +89,7 @@
     <ClInclude Include="src\kernel\HiAllocator.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\kernel\HiMemoryPool.h">
+    <ClInclude Include="src\kernel\MemoryPool.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\Block.h">

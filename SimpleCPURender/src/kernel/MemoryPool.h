@@ -4,7 +4,6 @@
 #include <list>
 #include <exception>
 #include <mutex>
-#include <cassert>
 #include "Block.h"
 
 

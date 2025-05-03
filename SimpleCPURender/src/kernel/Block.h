@@ -1,8 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <cstdlib>
-
 
 struct BlockMeta {
     int next_pos; // the next byte to be allocated

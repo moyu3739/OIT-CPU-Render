@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mutex>
-#include <memory>
 #include <glm/glm.hpp>
 #include "Primitive.h"
 

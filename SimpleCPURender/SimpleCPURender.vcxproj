@@ -159,7 +159,7 @@
     <ClInclude Include="src\kernel\FrameBufferManager.h" />
     <ClInclude Include="src\kernel\HiAllocator.h" />
     <ClInclude Include="src\kernel\Block.h" />
-    <ClInclude Include="src\kernel\HiMemoryPool.h" />
+    <ClInclude Include="src\kernel\MemoryPool.h" />
     <ClInclude Include="src\kernel\PerPixelListBuffer.h" />
     <ClInclude Include="src\kernel\PixelBuffer.h" />
     <ClInclude Include="src\kernel\ThreadSafeInsertList.h" />

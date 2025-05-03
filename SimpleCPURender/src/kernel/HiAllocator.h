@@ -4,7 +4,7 @@
 #include <list>
 #include <unordered_set>
 #include <cassert>
-#include "HiMemoryPool.h"
+#include "MemoryPool.h"
 
 
 template <int block_size, typename T>
