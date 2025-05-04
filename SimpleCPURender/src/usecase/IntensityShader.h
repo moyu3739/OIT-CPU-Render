@@ -132,10 +132,10 @@ public:
 
 public:
     glm::vec3 light_pos;
-    glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 light_color = glm::vec3(1.0f);
     float ka = 0.2f;
     float kd = 0.8f;
-    glm::vec3 obj_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 obj_color = glm::vec3(1.0f);
     Texture* texture = nullptr;
 };
 

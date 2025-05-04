@@ -152,6 +152,7 @@
     <ClCompile Include="src\usecase\CornellBox.cpp" />
     <ClCompile Include="src\usecase\Intensity.cpp" />
     <ClCompile Include="src\usecase\main.cpp" />
+    <ClCompile Include="src\usecase\Phong.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\kernel\Engine.h" />
@@ -177,6 +178,8 @@
     <ClInclude Include="src\kernel\Shader.h" />
     <ClInclude Include="src\kernel\Texture.h" />
     <ClInclude Include="src\usecase\Intensity.h" />
+    <ClInclude Include="src\usecase\Phong.h" />
+    <ClInclude Include="src\usecase\PhongShader.h" />
     <ClInclude Include="src\usecase\Shape.h" />
     <ClInclude Include="src\usecase\ShapeShader.h" />
     <ClInclude Include="src\usecase\Timer.h" />

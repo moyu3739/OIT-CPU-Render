@@ -167,7 +167,7 @@ public:
             shader_io_list[i] = new ShaderIO();
     }
 
-    ShaderIOGroup(int n, VertexShader* vertex_shader, FragmentShader* fragment_shader) {
+    ShaderIOGroup(int n, const VertexShader* vertex_shader, const FragmentShader* fragment_shader) {
         shader_io_list.resize(n);
         for (int i = 0; i < n; i++)
             shader_io_list[i] = new ShaderIO(vertex_shader, fragment_shader);

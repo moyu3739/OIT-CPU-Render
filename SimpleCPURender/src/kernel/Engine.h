@@ -1,7 +1,7 @@
 #pragma once
 
 #include <thread>
-#include <exception>
+#include <stdexcept>
 #include <cassert>
 #include <glm/glm.hpp>
 #include "utility.h"

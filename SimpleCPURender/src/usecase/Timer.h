@@ -2,7 +2,7 @@
 
 #include <windows.h>
 #include <vector>
-#include <exception>
+#include <stdexcept>
 
 
 class Timer{

@@ -58,18 +58,11 @@ void Application::LoadModel(const std::string& model_name,
         }
     }
 
-    // for (auto& vertex : vertices){
-    //     auto& p = vertex.position;
-    //     auto& n = vertex.normal;
-    //     auto& t = vertex.texcoord;
-    //     printf("v(%f, %f, %f) - vn(%f, %f, %f) - t(%f, %f)\n", p.x, p.y, p.z, n.x, n.y, n.z, t.x, t.y);
-    // }
     printf("have loaded model: \"%s\"\n", model_name.c_str());
     printf("    - obj file:     %s\n", obj_path.c_str());
     printf("    - texture file: %s\n", texture_path.c_str());
     printf("    - vertices:     %d\n", vertices->size());
     printf("    - triangles:    %d\n", vertices->size() / 3);
-
     assert(vertices->size() % 3 == 0);
 
     models[model_name] = Object{std::move(vertices), std::move(texture)};

@@ -17,8 +17,6 @@ public:
     ProceduralTexture() {}
 
     virtual ~ProceduralTexture() {}
-
-    virtual glm::vec4 Sample(const glm::vec2& uv) const = 0;
 };
 
 
@@ -29,7 +27,7 @@ public:
 
     virtual ~CheckerTexture() {}
 
-    virtual glm::vec4 Sample(const glm::vec2& uv) const final override {
+    virtual glm::vec4 Sample(const glm::vec2& uv) const override {
         int seg_x = static_cast<int>(uv.x * scale);
         int seg_y = static_cast<int>(uv.y * scale);
         return (seg_x + seg_y) % 2 == 0 ? color1 : color2;

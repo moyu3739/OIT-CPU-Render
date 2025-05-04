@@ -174,7 +174,7 @@ public:
 
 public:
     glm::vec3 light_pos;
-    glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 light_color = glm::vec3(1.0f);
     float ka = 0.6f; // ambient coefficient
     float kv = 0.35f; // value decreasing coefficient (control the range of shadow)
     float ks = 0.4f; // saturation increasing coefficient (control the saturation of shadow)

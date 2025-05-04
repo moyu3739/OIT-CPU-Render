@@ -33,6 +33,9 @@
     <ClCompile Include="src\usecase\Intensity.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\usecase\Phong.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\kernel\Pipeline.h">
@@ -120,6 +123,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\TriangleTraversal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\PhongShader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\usecase\Phong.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
