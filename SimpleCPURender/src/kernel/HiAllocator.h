@@ -25,7 +25,8 @@ public:
     }
 
     HiAllocator(MemoryPool_t* memory_pool, int pre_alloc){
-        Init(memory_pool, pre_alloc);
+        this->memory_pool = memory_pool;
+        FetchBlocks(pre_alloc);
     }
 
     HiAllocator(const HiAllocator&) = delete;
@@ -33,11 +34,6 @@ public:
 
     ~HiAllocator(){
         SubmitAll();
-    }
-
-    void Init(MemoryPool_t* memory_pool, int pre_alloc){
-        this->memory_pool = memory_pool;
-        FetchBlocks(pre_alloc);
     }
 
     // allocate memory for an object of type `T`

@@ -13,6 +13,7 @@
 
 
 class Pipeline {
+    friend class PipelineManager;
 public:
     Pipeline(int thread_num): thread_num(thread_num), shader_io_group(thread_num) {}
 
@@ -87,8 +88,8 @@ public:
 
         // if single thread, do it directly
         if (thread_num == 1) {
-            if (use_oit) RenderProcessSlice<true>(0, vertex_buffer->size(), frame_buffer, 0);
-            else RenderProcessSlice<false>(0, vertex_buffer->size(), frame_buffer, 0);
+            if (use_oit) RenderSliceProcess<true>(0, vertex_buffer->size(), frame_buffer, 0);
+            else RenderSliceProcess<false>(0, vertex_buffer->size(), frame_buffer, 0);
             return;
         }
 
@@ -99,14 +100,14 @@ public:
             for (int i = 0; i < thread_num; i++){
                 int v_begin = split_points[i] * 3;
                 int v_end = split_points[i + 1] * 3;
-                threads.emplace_back(&Pipeline::RenderProcessSlice<true>, this, v_begin, v_end, frame_buffer, i);
+                threads.emplace_back(&Pipeline::RenderSliceProcess<true>, this, v_begin, v_end, frame_buffer, i);
             }
         }
         else { // not use OIT
             for (int i = 0; i < thread_num; i++){
                 int v_begin = split_points[i] * 3;
                 int v_end = split_points[i + 1] * 3;
-                threads.emplace_back(&Pipeline::RenderProcessSlice<false>, this, v_begin, v_end, frame_buffer, i);
+                threads.emplace_back(&Pipeline::RenderSliceProcess<false>, this, v_begin, v_end, frame_buffer, i);
             }
         }
 
@@ -122,8 +123,8 @@ public:
 
         // if single thread, do it directly
         if (thread_num == 1) {
-            if (use_oit) RenderProcessSlice<true>(0, vertex_buffer->size(), frame_buffer, 0);
-            else RenderProcessSlice<false>(0, vertex_buffer->size(), frame_buffer, 0);
+            if (use_oit) RenderSliceProcess<true>(0, vertex_buffer->size(), frame_buffer, 0);
+            else RenderSliceProcess<false>(0, vertex_buffer->size(), frame_buffer, 0);
             return;
         }
 
@@ -131,12 +132,12 @@ public:
         std::vector<std::thread> threads;
         if (use_oit) { // use OIT
             for (int i = 0; i < thread_num; i++){
-                threads.emplace_back(&Pipeline::RenderProcessCounter<true>, this, &counter, frame_buffer, i);
+                threads.emplace_back(&Pipeline::RenderCounterProcess<true>, this, &counter, frame_buffer, i);
             }
         }
         else { // not use OIT
             for (int i = 0; i < thread_num; i++){
-                threads.emplace_back(&Pipeline::RenderProcessCounter<false>, this, &counter, frame_buffer, i);
+                threads.emplace_back(&Pipeline::RenderCounterProcess<false>, this, &counter, frame_buffer, i);
             }
         }
 
@@ -150,7 +151,7 @@ private:
     // @param[in] frame_buffer  frame buffer
     // @param[in] thread_id  thread id (0, 1, 2, ..., thread_num - 1)
     template <bool use_oit = false>
-    void RenderProcessSlice(int v_begin, int v_end, FrameBuffer* frame_buffer, int thread_id) {
+    void RenderSliceProcess(int v_begin, int v_end, FrameBuffer* frame_buffer, int thread_id) {
         for (int i = v_begin; i < v_end; i += 3){
             RenderTriangle<use_oit>(i, frame_buffer, thread_id);
         }
@@ -161,7 +162,7 @@ private:
     // @param[in] frame_buffer  frame buffer
     // @param[in] thread_id  thread id (0, 1, 2, ..., thread_num - 1)
     template <bool use_oit = false>
-    void RenderProcessCounter(std::atomic<int>* counter, FrameBuffer* frame_buffer, int thread_id) {
+    void RenderCounterProcess(std::atomic<int>* counter, FrameBuffer* frame_buffer, int thread_id) {
         while (true){
             int i = counter->fetch_add(3, std::memory_order_relaxed);
             if (i >= vertex_buffer->size()) break;

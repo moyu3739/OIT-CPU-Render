@@ -10,6 +10,7 @@
 #include "PipelineManager.h"
 #include "FrameBufferManager.h"
 #include "Frontend.h"
+#include "Timer.h"
 
 
 // maintain pipeline manager, frame buffer manager and frontend
@@ -303,6 +304,9 @@ public:
     // serialized do render and output
     // @param[in] info  info for render
     void SerialRender(unsigned long long load_info = 0, unsigned long long output_info = 0) {
+        Timer tm;
+        tm.StartTimer();
+
         // clear buffer
         FrameBuffer* back_frame_buffer = frame_buffer_manager->GetBackBuffer(); // get back buffer
         back_frame_buffer->Clear();
@@ -312,6 +316,10 @@ public:
         // load buffer
         FrameBuffer* front_frame_buffer = frame_buffer_manager->GetFrontBuffer(); // get front buffer
         frontend->Load(front_frame_buffer, load_info);
+
+        float t = tm.ReadTimer();
+        printf("Render time: %.1f ms\n", t * 1000);
+
         // output
         frontend->Output(output_info);
     }

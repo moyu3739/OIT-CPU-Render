@@ -128,7 +128,12 @@ void Application::ResetNormal(const std::string& model_name, bool left_handed){
 
 void Application::RenderFrame() {
     auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 0, true);
+
+    // Timer tm;
+    // tm.StartTimer();
     engine->SerialRender(0, 0);
+    // float t = tm.ReadTimer();
+    // printf("Render time: %.1f ms\n", t * 1000);
 }
 
 void Application::RenderAnimation(float lasting) {

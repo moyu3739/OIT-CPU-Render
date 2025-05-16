@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 #include "utility.h"
 #include "Primitive.h"
 #include "Shader.h"
@@ -117,9 +118,81 @@ public:
     // render all pipelines, and blend the frame buffer
     // @param[in] frame_buffer  frame buffer
     void Render(FrameBuffer* frame_buffer) {
-        for (Pipeline* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false);
-        for (Pipeline* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true);
+        // for (Pipeline* pipeline: opa_pipelines) pipeline->Render(frame_buffer, false);
+        // for (Pipeline* pipeline: tra_pipelines) pipeline->Render(frame_buffer, true);
+        RenderPipelinesCounter<false>(opa_pipelines, frame_buffer);
+        RenderPipelinesCounter<true>(tra_pipelines, frame_buffer);
         frame_buffer->Blend(blend_thread_num);
+    }
+
+    // render pipelines to the given frame buffer.
+    // It is optimized for situation of multiple pipelines in the manager, using inter-pipeline parallelism.
+    // @note This function employs a dynamic work-stealing parallel pattern using an atomic counter.
+    //       The 64-bit counter combines pipeline index (high 32 bits) and triangle index (low 32 bits),
+    //       allowing threads to dynamically fetch and process triangles, ensuring good load balancing
+    //       even with varying triangle processing times. When multiple threads are available, triangles
+    //       across all pipelines are distributed among threads; otherwise, pipelines are processed sequentially.
+    template <bool use_oit = false>
+    void RenderPipelinesCounter(const std::vector<Pipeline*>& pipelines, FrameBuffer* frame_buffer) {
+        if (pipelines.empty()) return;
+
+        // check length of vertex buffer
+        for (auto* pipeline: pipelines) {
+            if (pipeline->vertex_buffer->size() % 3 != 0)
+                throw std::runtime_error("Vertex buffer size is not a multiple of 3");
+        }
+        
+        // if single thread, do it directly
+        if (render_thread_num == 1) {
+            for (auto* pipeline: pipelines)
+                pipeline->RenderSliceProcess<use_oit>(0, pipeline->vertex_buffer->size(), frame_buffer, 0);
+            return;
+        }
+
+        // counter is a 64-bit integer,
+        // upper 32 bits are the pipeline index, lower 32 bits are the triangle index
+        std::atomic<unsigned long long> counter(0);
+        std::vector<std::thread> threads;
+        for (int i = 0; i < render_thread_num; i++){
+            threads.emplace_back(&PipelineManager::RenderPipelinesCounterProcess<use_oit>, pipelines, &counter, frame_buffer, i);
+        }
+
+        for (std::thread& thread: threads) thread.join();
+    }
+
+private:
+    template <bool use_oit = false>
+    static void RenderPipelinesCounterProcess(
+        const std::vector<Pipeline*>& pipelines, std::atomic<unsigned long long>* counter, 
+        FrameBuffer* frame_buffer, int thread_id)
+    {
+        if (pipelines.empty()) return;
+
+        while (true){
+            // counter is a 64-bit integer,
+            // upper 32 bits are the pipeline index, lower 32 bits are the triangle index
+            unsigned long long pos = counter->fetch_add(3, std::memory_order_relaxed);
+            int idx_p = pos >> 32;
+            int idx_t = pos & 0xffffffffLL;
+
+            // if the pipeline still has a triangle, render the current triangle
+            if (idx_t < pipelines[idx_p]->vertex_buffer->size()) {
+                pipelines[idx_p]->RenderTriangle<use_oit>(idx_t, frame_buffer, thread_id);
+                continue;
+            }
+
+            // if all pipelines finished, break
+            if (idx_p == pipelines.size() - 1) {
+                break;
+            }
+
+            // If the current thread happens to finish all triangles in the pipeline and the next pipieline exists,
+            // it takes responsibility to set the counter to the next pipeline.
+            if (idx_t == pipelines[idx_p]->vertex_buffer->size()) {
+                unsigned long long new_pos = static_cast<unsigned long long>(idx_p + 1) << 32;
+                counter->store(new_pos, std::memory_order_relaxed);
+            }
+        }
     }
 
 private:

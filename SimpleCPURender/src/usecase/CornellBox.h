@@ -36,6 +36,11 @@ public:
             LoadVertexBufferShapesCombined();
         else
             LoadVertexBufferShapesDivided();
+
+        int total_vertex = 0;
+        for (auto& vb: vertex_buffers) total_vertex += vb.second.size();
+        printf("- vertices:  %d\n", total_vertex);
+        printf("- triangles: %d\n", total_vertex / 3);
     }
 
     void LoadVertexBufferShapesDivided();

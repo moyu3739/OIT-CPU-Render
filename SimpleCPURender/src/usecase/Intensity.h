@@ -25,8 +25,8 @@ public:
     Intensity(int width, int height): Application(width, height) {}
 
     virtual void Run() override {
-        LoadModel("dragon", "asset/obj/dragon.obj");
-        // LoadModel("earth", "asset/obj/sphere.obj", "asset/texture/miscellaneous/earthmap.jpg");
+        // LoadModel("dragon", "asset/obj/dragon.obj");
+        LoadModel("earth", "asset/obj/sphere.obj", "asset/texture/miscellaneous/earthmap.jpg");
         LoadVertexBuffer();
 
         RenderAnimation(10.0f);

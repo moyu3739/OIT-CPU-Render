@@ -58,12 +58,12 @@ std::unique_ptr<Engine> Intensity::InitEngine(
     // initialize model transform
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
     float rotation = glm::radians(45.0f);
-    float scale = 1.0f;
+    float scale = 2.0f;
     vshader->model = GetModelTransform(translation, rotation, scale);
 
     // initialize view transform
-    const glm::vec3 eye(0.0f, 2.0f, 8.0f); // camera position
-    const glm::vec3 target(0.0f, 2.0f, 0.0f); // `eye` and `target` defines the direction the camera looking at
+    const glm::vec3 eye(0.0f, 0.0f, 8.0f); // camera position
+    const glm::vec3 target(0.0f, 0.0f, 0.0f); // `eye` and `target` defines the direction the camera looking at
     const glm::vec3 up(0.0f, 1.0f, 0.0f); // `up` vector of the camera
     vshader->view = GetViewTransform(eye, target, up);
 

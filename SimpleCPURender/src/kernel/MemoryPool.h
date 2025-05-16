@@ -54,7 +54,7 @@ public:
             && total_blocks - available_blocks.size() <= total_blocks / 4) HalfShrink();
     }
 
-protected:
+private:
     // allocate a new block
     // @return the address of the new block
     // @note the new block is aligned with the size of the block (4KB)
@@ -100,7 +100,7 @@ protected:
         std::clog << "[Info] MemoryPool: Half-shrinked to " << total_blocks << " blocks." << std::endl;
     }
 
-protected:
+private:
     int pre_alloc; // the number of blocks to pre-allocate
     int total_blocks = 0; // the total number of blocks (both available and in-use)
     std::list<Block_t*> available_blocks;
