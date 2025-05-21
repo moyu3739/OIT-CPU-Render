@@ -9,6 +9,7 @@
 #include <gdiplus.h>
 #include "Primitive.h"
 #include "FrameBuffer.h"
+#include "Timer.h"
 
 #pragma comment(lib, "gdiplus.lib")
 
@@ -30,7 +31,9 @@ public:
 
 class Displayer: public Frontend {
 public:
-    Displayer() {}
+    Displayer() {
+        tm.StartTimer();
+    }
 
     virtual ~Displayer() {}
 
@@ -38,18 +41,46 @@ public:
 
     virtual void Output(unsigned long long info) override {
         Show(info);
+        UpdateFPS();
     }
+
+    void UpdateFPS() {
+        float t = tm.ReadTimer();
+        frame_count++;
+
+        // update fps (calculate fps every 1 second)
+        if (t - last >= update_fps_interval) {
+            fps = frame_count / (t - last);
+            last = t;
+            frame_count = 0;
+        }
+    }
+
+protected:
+    static constexpr float update_fps_interval = 0.5f;
+    int frame_count = 0;
+    float last = 0.0f;
+    float fps = 0.0f;
+    Timer tm;
 };
 
 // base class for OpenCV displayer
 // @note  remember to delete, or it will cause crash (not only memory leak) when exit 
 class OpencvDisplayer: public Displayer {
 public:
-    OpencvDisplayer() {}
+    OpencvDisplayer(): winname(GetNextWindowName()) {}
 
     virtual ~OpencvDisplayer() {
-        cv::destroyAllWindows();
+        cv::destroyWindow(winname);
     };
+
+    static std::string GetNextWindowName() {
+        static int win_id = 0;
+        return "Window " + std::to_string(win_id++);
+    }
+
+protected:
+    const std::string winname;
 };
 
 
@@ -165,7 +196,10 @@ public:
     }
 
     virtual void Show(int delay = 1) override {
-        cv::imshow("OpenCV displayer", mat);
+        std::string title = "Displayer (" + std::to_string(static_cast<int>(fps + 0.5f)) + " fps)";
+
+        cv::setWindowTitle(winname, title);
+        cv::imshow(winname, mat);
         cv::waitKey(delay);
     }
 
@@ -243,7 +277,10 @@ public:
     }
 
     virtual void Show(int delay = 1) override {
-        cv::imshow("OpenCV displayer", mat_front);
+        std::string title = "Displayer (" + std::to_string(static_cast<int>(fps + 0.5f)) + " fps)";
+
+        cv::setWindowTitle(winname, title);
+        cv::imshow(winname, mat_front);
         cv::waitKey(delay);
     }
 

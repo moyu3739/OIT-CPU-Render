@@ -121,7 +121,7 @@ void QuickStart() {
     LoadModel("asset/obj/bunny.obj", vertex_buffer);
 
     // create engine and create pipeline in it
-    auto* engine = new Engine(width, height, 16, 16, glm::vec3(1.0f), INFINITY, 4, true);
+    auto* engine = new Engine(width, height, 16, 16, glm::vec3(1.0f), INFINITY, 3, true);
     engine->CreatePipeline(vertex_buffer, vshader, fshader, ON_FACE, true);
 
     // engine.SerialRender();

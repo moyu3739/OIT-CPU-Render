@@ -27,7 +27,7 @@ public:
     virtual void Run() override {
         LoadVertexBuffer();
 
-        RenderAnimation(10.0f);
+        RenderAnimation(1000.0f);
         // RenderFrame();
     }
 

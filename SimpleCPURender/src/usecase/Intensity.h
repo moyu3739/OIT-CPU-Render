@@ -29,7 +29,7 @@ public:
         LoadModel("earth", "asset/obj/sphere.obj", "asset/texture/miscellaneous/earthmap.jpg");
         LoadVertexBuffer();
 
-        RenderAnimation(10.0f);
+        RenderAnimation(1000.0f);
         // RenderFrame();
     }
 

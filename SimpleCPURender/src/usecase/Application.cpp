@@ -137,7 +137,7 @@ void Application::RenderFrame() {
 }
 
 void Application::RenderAnimation(float lasting) {
-    auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 4, true, true, 0.95);
+    auto engine = InitEngine(8, 8, glm::vec3(1.0f), INFINITY, 4, true, true, 0.95);
 
     const float T = 3.0f;
     const float Y = 0.5f;
