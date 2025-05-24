@@ -62,13 +62,14 @@ std::unique_ptr<Engine> Intensity::InitEngine(
     vshader->model = GetModelTransform(translation, rotation, scale);
 
     // initialize view transform
-    const glm::vec3 eye(0.0f, 0.0f, 8.0f); // camera position
-    const glm::vec3 target(0.0f, 0.0f, 0.0f); // `eye` and `target` defines the direction the camera looking at
+    const float h = 2.0f;
+    const glm::vec3 eye(0.0f, h, 8.0f); // camera position
+    const glm::vec3 target(0.0f, h, 0.0f); // `eye` and `target` defines the direction the camera looking at
     const glm::vec3 up(0.0f, 1.0f, 0.0f); // `up` vector of the camera
     vshader->view = GetViewTransform(eye, target, up);
 
     // initialize perspective projection transform
-    glm::vec3 light_pos(0.0f, 0.0f, 6.0f);
+    glm::vec3 light_pos(0.0f, h, 6.0f);
     constexpr float fovy = glm::radians(60.0f); // field of view
     const float aspect = 1.0f * width / height; // aspect of the window (width / height)
     const float znear = 0.01f; // near plane for clipping

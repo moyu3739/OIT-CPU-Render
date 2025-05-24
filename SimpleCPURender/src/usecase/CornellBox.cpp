@@ -25,8 +25,6 @@ std::unique_ptr<Engine> CornellBox::InitEngine(
             vshader->model = GetModelTransform(glm::vec3(0.0f, 0.0f, 0.0f), rotation, scale);
         }
         else {
-            glm::vec3 t_min(-1.5f);
-            glm::vec3 t_max(1.5f);
             vshader->model = GetModelTransform(random_gen.RandomVec3(t_min, t_max), rotation, scale);
         }
         vshader->global_model = global_model;
@@ -120,7 +118,7 @@ void CornellBox::LoadVertexBufferShapesCombined() {
 
     for (auto& nvd: vertex_datas) {
         auto& vertices = nvd.second;
-        glm::vec3 translation = random_gen.RandomVec3(glm::vec3(-1.5f), glm::vec3(1.5f));
+        glm::vec3 translation = random_gen.RandomVec3(t_min, t_max);
         for (auto& vertex: vertices) vertex.position += translation;
     }
 

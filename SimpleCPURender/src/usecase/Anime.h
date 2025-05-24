@@ -31,7 +31,7 @@ public:
         LoadModel("Babala body", "asset/obj/Babala/body.obj", "asset/texture/Babala/body.png");
         LoadVertexBuffer();
 
-        RenderAnimation(10.0f);
+        RenderAnimation(1000.0f);
         // RenderFrame();
     }
 

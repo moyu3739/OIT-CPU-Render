@@ -21,8 +21,13 @@ class CornellBox: public Application {
     using MyFragmentShader = ShapeFragmentShader;
 
 public:
-    CornellBox(int width, int height, int N_shapes, bool combined, int random_seed = 0)
-    : Application(width, height), N_shapes(N_shapes), combined(combined), random_gen(random_seed) {}
+    CornellBox(
+        int width, int height, int N_shapes, bool combined,
+        const glm::vec3& t_min, const glm::vec3& t_max, int random_seed = 0
+    ):
+        Application(width, height), N_shapes(N_shapes), combined(combined),
+        t_min(t_min), t_max(t_max) ,random_gen(random_seed)
+    {}
 
     virtual void Run() override {
         LoadVertexBuffer();
@@ -95,6 +100,8 @@ public:
 public:
     int N_shapes;
     bool combined = false;
+    glm::vec3 t_min;
+    glm::vec3 t_max;
     std::shared_ptr<glm::mat4> global_model;
     std::vector<std::unique_ptr<Shape>> shapes;
     RandomGenerator random_gen;

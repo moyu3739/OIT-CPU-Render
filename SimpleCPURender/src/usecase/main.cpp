@@ -10,11 +10,14 @@
 
 
 int main() {
-    Anime anime = Anime(800, 800);
-    anime.Run();
+    // Anime anime = Anime(800, 800);
+    // anime.Run();
 
-    // CornellBox cornell = CornellBox(800, 800, 200, false, 1919810);
-    // cornell.Run();
+    const float a = 1.5f;
+    glm::vec3 t_min(-a);
+    glm::vec3 t_max(a);
+    CornellBox cornell = CornellBox(800, 800, 200, false, t_min, t_max, 1919810);
+    cornell.Run();
 
     // Intensity intensity = Intensity(800, 800);
     // intensity.Run();

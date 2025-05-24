@@ -128,10 +128,3 @@ private:
     float half_thickness; // half of vertex thickness
 };
 
-
-class AllTriangleTraversal {
-public:
-    static TriangleTraversalFace face_triange_traversal;
-    static TriangleTraversalEdge edge_triangle_traversal;
-    static TriangleTraversalVertex vertex_triangle_traversal;
-};
