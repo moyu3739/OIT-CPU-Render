@@ -245,7 +245,8 @@ public:
     }
 
     virtual void Load(const FrameBuffer* frame_buffer, unsigned long long info) override {
-        LoadFromFrameBuffer_8UC3(frame_buffer);
+        __LoadFromFrameBuffer_8UC3(frame_buffer);
+        // LoadFromFrameBuffer_8UC3(frame_buffer);
     }
 
     void LoadFromFrameBuffer_8UC3(const FrameBuffer* frame_buffer) {

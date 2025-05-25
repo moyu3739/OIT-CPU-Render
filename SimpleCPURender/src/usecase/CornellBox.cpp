@@ -74,24 +74,28 @@ void CornellBox::LoadVertexBufferShapesDivided() {
         std::unique_ptr<Shape> shape;
 
         glm::vec3 color = random_gen.RandomVec3(glm::vec3(0.5f), glm::vec3(1.0f));
-        switch(random_gen.RandomInt(0, 3)) {
-            case 0: { // sphere
+
+        ShapeType shape_type_instance = shape_type;
+        if (shape_type_instance == SHAPE_RANDOM)
+            shape_type_instance = static_cast<ShapeType>(random_gen.RandomInt(0, 3));
+        switch(shape_type_instance) {
+            case SHAPE_SPHERE: { // sphere
                 float r = random_gen.RandomFloat(0.1f, 0.2f);
                 shape = std::make_unique<Sphere>(r, 32, color);
                 break;
             }
-            case 1: { // cylinder
+            case SHAPE_CYLINDER: { // cylinder
                 float r = random_gen.RandomFloat(0.1f, 0.2f);
                 float h = random_gen.RandomFloat(0.2f, 0.4f);
                 shape = std::make_unique<Cylinder>(r, h, 32, color);
                 break;
             }
-            case 2: { // box
+            case SHAPE_BOX: { // box
                 glm::vec3 size = random_gen.RandomVec3(glm::vec3(0.2f), glm::vec3(0.4f));
                 shape = std::make_unique<Box>(size, color);
                 break;
             }
-            case 3: { // cone
+            case SHAPE_CONE: { // cone
                 float r = random_gen.RandomFloat(0.1f, 0.2f);
                 float h = random_gen.RandomFloat(0.2f, 0.4f);
                 shape = std::make_unique<Cone>(r, h, 64, color);

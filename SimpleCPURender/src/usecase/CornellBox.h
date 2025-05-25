@@ -16,6 +16,15 @@
 #include "ShapeShader.h"
 
 
+enum ShapeType {
+    SHAPE_SPHERE,
+    SHAPE_CYLINDER,
+    SHAPE_BOX,
+    SHAPE_CONE,
+    SHAPE_RANDOM = -1
+};
+
+
 class CornellBox: public Application {
     using MyVertexShader   = ShapeVertexShader;
     using MyFragmentShader = ShapeFragmentShader;
@@ -23,17 +32,17 @@ class CornellBox: public Application {
 public:
     CornellBox(
         int width, int height, int N_shapes, bool combined,
-        const glm::vec3& t_min, const glm::vec3& t_max, int random_seed = 0
+        const glm::vec3& t_min, const glm::vec3& t_max, int random_seed = 0, ShapeType shape_type = SHAPE_RANDOM
     ):
         Application(width, height), N_shapes(N_shapes), combined(combined),
-        t_min(t_min), t_max(t_max) ,random_gen(random_seed)
+        t_min(t_min), t_max(t_max) ,random_gen(random_seed), shape_type(shape_type)
     {}
 
     virtual void Run() override {
         LoadVertexBuffer();
 
-        RenderAnimation(1000.0f);
-        // RenderFrame();
+        // RenderAnimation(1000.0f);
+        RenderFrame();
     }
 
     void LoadVertexBuffer() override {
@@ -102,6 +111,8 @@ public:
     bool combined = false;
     glm::vec3 t_min;
     glm::vec3 t_max;
+    ShapeType shape_type;
+
     std::shared_ptr<glm::mat4> global_model;
     std::vector<std::unique_ptr<Shape>> shapes;
     RandomGenerator random_gen;
