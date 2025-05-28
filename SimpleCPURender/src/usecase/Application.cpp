@@ -127,7 +127,10 @@ void Application::ResetNormal(const std::string& model_name, bool left_handed){
 }
 
 void Application::RenderFrame() {
-    auto engine = InitEngine(16, 16, glm::vec3(1.0f), INFINITY, 0, true);
+    auto engine = InitEngine(
+        16, 16, glm::vec3(1.0f), INFINITY, 0,
+        enable_oit, use_backward_pplist, backward_blend_alpha_threshold
+    );
 
     // Timer tm;
     // tm.StartTimer();
@@ -137,7 +140,10 @@ void Application::RenderFrame() {
 }
 
 void Application::RenderAnimation(float lasting) {
-    auto engine = InitEngine(8, 8, glm::vec3(1.0f), INFINITY, 4, false, true, 0.95);
+    auto engine = InitEngine(
+        16, 16, glm::vec3(1.0f), INFINITY, 4,
+        enable_oit, use_backward_pplist, backward_blend_alpha_threshold
+    );
 
     const float T = 3.0f;
     const float Y = 0.5f;

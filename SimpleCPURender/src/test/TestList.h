@@ -4,11 +4,27 @@
 #include <random>
 #include <algorithm>
 #include <thread>
-#include "ThreadSafeInsertList.h"
 #include "Timer.h"
+#include "ThreadSafeInsertList.h"
 
 
-int SortedInsert(ThreadSafeInsertList<int>& list, int val){
+template <typename T>
+class StandardAllocator{
+public:
+    StandardAllocator() = default;
+
+    T* Allocate() {
+        return reinterpret_cast<T*>(new unsigned char[sizeof(T)]);
+    }
+
+    void Deallocate(T* ptr) {
+        delete[] reinterpret_cast<unsigned char*>(ptr);
+    }
+};
+
+
+inline int SortedInsert(ThreadSafeInsertList<int>& list, int val){
+    StandardAllocator<ThreadSafeInsertListNode<int>> allocator;
     ThreadSafeInsertList<int>::Iterator prev = list.Begin();
     ThreadSafeInsertList<int>::Iterator post = list.Begin().Next();
     
@@ -25,7 +41,7 @@ int SortedInsert(ThreadSafeInsertList<int>& list, int val){
             }
         }
 
-        bool res = list.TryInsertAt(prev, post, val);
+        bool res = list.TryInsertAt(prev, post, val, &allocator);
         if (res) break;
         else{
             post = prev.Next(); // get the next node again
@@ -37,20 +53,20 @@ int SortedInsert(ThreadSafeInsertList<int>& list, int val){
     return conflict;
 }
 
-void Shuffle(std::vector<int>& vals){
+inline void Shuffle(std::vector<int>& vals){
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(vals.begin(), vals.end(), g);
 }
 
-void InsertBatch(ThreadSafeInsertList<int>& list, const std::vector<int>& vals, int& conflict){
+inline void InsertBatch(ThreadSafeInsertList<int>& list, const std::vector<int>& vals, int& conflict){
     conflict = 0;
     for (int val: vals){
         conflict += SortedInsert(list, val);
     }
 }
 
-void Check(const ThreadSafeInsertList<int>& list){
+inline void Check(const ThreadSafeInsertList<int>& list){
     int size = 0;
     bool flag = true;
     ThreadSafeInsertList<int>::Iterator record = list.Begin();
@@ -75,7 +91,7 @@ void Check(const ThreadSafeInsertList<int>& list){
 }
 
 
-int main(){
+inline void TestList0(){
     const int N = 100000;
     const int T = 8;
     
@@ -90,7 +106,9 @@ int main(){
         nums_t[i].assign(nums.begin() + i * N / T, nums.begin() + (i + 1) * N / T);
     }
     
-    ThreadSafeInsertList<int> list(-1);
+    ThreadSafeInsertList<int> list;
+    StandardAllocator<ThreadSafeInsertListNode<int>> allocator;
+    list.TryInsertHead(list.Begin(), -1, &allocator); // insert 0 at head
 
     Timer tm;
     tm.StartTimer();
@@ -114,7 +132,12 @@ int main(){
     // std::cout << std::endl;
 
     Check(list);
+}
 
-    return 0;
+
+inline void TestList() {
+    printf("================ TEST LIST ================\n");
+    TestList0();
+    printf("\n");
 }
 

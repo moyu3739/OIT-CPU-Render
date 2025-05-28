@@ -130,9 +130,9 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Allocator.h" />
     <ClInclude Include="src\Block.h" />
     <ClInclude Include="src\FreeTimer.h" />
+    <ClInclude Include="src\HiAllocator.h" />
     <ClInclude Include="src\MemoryPool.h" />
     <ClInclude Include="src\AllocatorTester.h" />
     <ClInclude Include="src\Timer.h" />

@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>external;src/kernel;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>external;src;src/kernel;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,7 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>external;src/kernel;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;external;src/kernel;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -146,12 +146,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\test\TestAllocator.h" />
     <ClCompile Include="src\usecase\Anime.cpp" />
     <ClCompile Include="src\usecase\Application.cpp" />
     <ClCompile Include="src\kernel\ImageTexture.cpp" />
     <ClCompile Include="src\usecase\CornellBox.cpp" />
     <ClCompile Include="src\usecase\Intensity.cpp" />
-    <ClCompile Include="src\usecase\main.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\usecase\Phong.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,13 +166,14 @@
     <ClInclude Include="src\kernel\PixelBuffer.h" />
     <ClInclude Include="src\kernel\ThreadSafeInsertList.h" />
     <ClInclude Include="src\kernel\TriangleTraversal.h" />
+    <ClInclude Include="src\test\PointerRecorder.h" />
+    <ClInclude Include="src\test\TestList.h" />
     <ClInclude Include="src\usecase\Anime.h" />
     <ClInclude Include="src\usecase\AnimeStyleShader.h" />
     <ClInclude Include="src\usecase\Application.h" />
     <ClInclude Include="src\kernel\Frontend.h" />
     <ClInclude Include="src\kernel\FrameBuffer.h" />
     <ClInclude Include="src\usecase\CornellBox.h" />
-    <ClInclude Include="src\usecase\FreeTimer.h" />
     <ClInclude Include="src\kernel\ImageTexture.h" />
     <ClInclude Include="src\kernel\Pipeline.h" />
     <ClInclude Include="src\kernel\PipelineManager.h" />
@@ -182,7 +184,7 @@
     <ClInclude Include="src\usecase\PhongShader.h" />
     <ClInclude Include="src\usecase\Shape.h" />
     <ClInclude Include="src\usecase\ShapeShader.h" />
-    <ClInclude Include="src\usecase\Timer.h" />
+    <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\kernel\Primitive.h" />
     <ClInclude Include="src\usecase\IntensityShader.h" />
     <ClInclude Include="src\kernel\utility.h" />

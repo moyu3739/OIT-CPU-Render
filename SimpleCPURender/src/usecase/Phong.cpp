@@ -113,6 +113,9 @@ void QuickStart() {
     fshader->view_pos = eye;
     fshader->light_color = glm::vec3(1.0f);
     fshader->obj_color = glm::vec3(0.6f, 1.0f, 0.8f);
+    fshader->ka = 0.5f;
+    fshader->kd = 0.1f;
+    fshader->ks = 0.4f;
     fshader->shininess = 32.0f;
     fshader->alpha = 0.5f;
 

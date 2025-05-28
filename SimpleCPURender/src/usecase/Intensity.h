@@ -22,7 +22,10 @@ class Intensity: public Application {
     using MyFragmentShader = IntensityFragmentShader;
 
 public:
-    Intensity(int width, int height): Application(width, height) {}
+    Intensity(
+        int width, int height,
+        bool enable_oit = false, bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ): Application(width, height, enable_oit, use_backward_pplist, backward_blend_alpha_threshold) {}
 
     virtual void Run() override {
         LoadModel("dragon", "asset/obj/dragon.obj");

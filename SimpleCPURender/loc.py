@@ -6,8 +6,10 @@ from rich.table import Table
 
 # 需要统计的目录和文件类型
 DIR_LIST = [
+    "src",
     "src/kernel",
     "src/usecase",
+    "src/test",
 ]
 TYPE_LIST = [".h", ".cpp"]
 
@@ -51,11 +53,11 @@ def main():
         total_loc += dir_loc
 
         table = Table()
-        table.add_column(dir, justify="right", style="green")
+        table.add_column(dir, justify="left", style="green")
         table.add_column("LOC", justify="right", style="cyan")
         for file, loc_file in file_record.items():
             table.add_row(file, str(loc_file))
-        table.add_row("【TOTAL】", str(dir_loc), style="bold magenta1")
+        table.add_row("[ SUM ]", str(dir_loc), style="bold magenta1")
         console.print(table)
         print()
 
@@ -65,7 +67,7 @@ def main():
     table.add_column("LOC", justify="right", style="cyan")
     for dir, loc_dir in dir_record.items():
         table.add_row(dir, str(loc_dir))
-    table.add_row("【TOTAL】", str(total_loc), style="bold orange1")
+    table.add_row("[ SUM ]", str(total_loc), style="bold orange1")
     console.print(table)
 
 

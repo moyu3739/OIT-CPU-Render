@@ -32,17 +32,19 @@ class CornellBox: public Application {
 public:
     CornellBox(
         int width, int height, int N_shapes, bool combined,
-        const glm::vec3& t_min, const glm::vec3& t_max, int random_seed = 0, ShapeType shape_type = SHAPE_RANDOM
+        const glm::vec3& t_min, const glm::vec3& t_max, int random_seed = 0, ShapeType shape_type = SHAPE_RANDOM,
+        bool enable_oit = false, bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
     ):
-        Application(width, height), N_shapes(N_shapes), combined(combined),
+        Application(width, height, enable_oit, use_backward_pplist, backward_blend_alpha_threshold),
+        N_shapes(N_shapes), combined(combined),
         t_min(t_min), t_max(t_max) ,random_gen(random_seed), shape_type(shape_type)
     {}
 
     virtual void Run() override {
         LoadVertexBuffer();
 
-        // RenderAnimation(1000.0f);
-        RenderFrame();
+        RenderAnimation(1000.0f);
+        // RenderFrame();
     }
 
     void LoadVertexBuffer() override {

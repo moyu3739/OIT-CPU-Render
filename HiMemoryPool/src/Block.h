@@ -1,16 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <cstdlib>
 
-
-struct BlockMeta{
+struct BlockMeta {
     int next_pos; // the next byte to be allocated
     int in_use; // the number of bytes in use
 };
 
 template <int size> // `size` is the size of the block, must be 2^n (n >= 4)
-class Block{
+class Block {
     using Block_t = Block<size>;
 
 public:
@@ -50,8 +47,8 @@ public:
     }
 
 public:
-    static const int capacity = size - sizeof(BlockMeta); // the capacity of the block for data storage
-    static const long long mask = ~(size - 1); // mask to get the address of the block, e.g. 0xFFFFFFFFFFFFF000 for 4KB block
+    constexpr static int capacity = size - sizeof(BlockMeta); // the capacity of the block for data storage
+    constexpr static long long mask = ~(size - 1); // mask to get the address of the block, e.g. 0xFFFFFFFFFFFFF000 for 4KB block
     
 public:
     BlockMeta meta;

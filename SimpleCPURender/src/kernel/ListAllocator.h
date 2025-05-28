@@ -24,7 +24,7 @@ public:
 };
 
 
-constexpr int block_size = 1024*1024; // 1 MB block
+static constexpr int block_size = 1024*1024; // 1 MB block
 using ListNode = ThreadSafeInsertListNode<Fragment>;
 using ListAllocator = BatchFreeAllocator<block_size, ListNode>;
 using ListAllocatorGroup = AllocatorGroup<ListAllocator>;

@@ -6,9 +6,9 @@
 
 
 template <class T>
-class AllocatorTester{
+class PointerRecorder {
 public:
-    AllocatorTester() {}
+    PointerRecorder() {}
 
     // ADD
     // called after allocating memory for an object of type `T`

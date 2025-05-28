@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\usecase\main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\usecase\Application.cpp">
@@ -36,6 +36,9 @@
     <ClCompile Include="src\usecase\Phong.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\test\TestAllocator.h">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\kernel\Pipeline.h">
@@ -50,10 +53,7 @@
     <ClInclude Include="src\kernel\Frontend.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\usecase\FreeTimer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\usecase\Timer.h">
+    <ClInclude Include="src\Timer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\kernel\Shader.h">
@@ -129,6 +129,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\usecase\Phong.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\PointerRecorder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\test\TestList.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

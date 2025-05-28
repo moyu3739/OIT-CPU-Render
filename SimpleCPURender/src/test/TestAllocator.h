@@ -1,20 +1,18 @@
 #include <iostream>
+#include "Timer.h"
 #include "MemoryPool.h"
 #include "HiAllocator.h"
-#include "Timer.h"
 
-
-const int block_size = 4096;
-using MemoryPool_4K = MemoryPool<block_size>;
+constexpr int block_size_test = 4096;
+using MemoryPool_4K = MemoryPool<block_size_test>;
 template <class T>
-using HiAllocator_4K = HiAllocator<block_size, T>;
-
+using HiAllocator_4K = HiAllocator<block_size_test, T>;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Test 0
 // 测试分配器的性能对比（与 c++ 标准分配器对比）
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void Test0() {
+inline void TestAllocator0() {
     printf("======== TEST 0 ========\n");
     using Td = int;
     MemoryPool_4K mp(10000);
@@ -56,7 +54,7 @@ struct TestStruct {
     double y;
 };
 
-void Test1() {
+inline void TestAllocator1() {
     printf("======== TEST 1 ========\n");
     // 1. 创建一个内存池
     MemoryPool_4K mp(10); // 预分配10个块，每块4KB
@@ -110,13 +108,13 @@ void Test1() {
 // Test 2
 // 测试分配器的多轮分配与释放
 ////////////////////////////////////////////////////////////////////////////////////////////////
-#include "AllocatorTester.h"
+#include "PointerRecorder.h"
 
-void Test2(){
+inline void TestAllocator2(){
     printf("======== TEST 2 ========\n");
     using Td = int;
     MemoryPool_4K mp(7);
-    AllocatorTester<Td> tester;
+    PointerRecorder<Td> recorder;
     HiAllocator_4K<Td> allocator(&mp, 10);
     
     const int N = 100000;
@@ -129,43 +127,42 @@ void Test2(){
         // allocate all memory, modify with a original value, and check
         for (int i = 0; i < N; i++){
             arr[i] = allocator.Allocate();
-            tester.RecordAllocate(arr[i]);
+            recorder.RecordAllocate(arr[i]);
 
-            tester.Modify(arr[i], k * i);
+            recorder.Modify(arr[i], k * i);
         }
-        tester.CheckAll();
+        recorder.CheckAll();
 
         // modify memory at even index, and check
         for (int i = 0; i < N; i += 2){
-            tester.Modify(arr[i], k * i * 2);
+            recorder.Modify(arr[i], k * i * 2);
         }
-        tester.CheckAll();
+        recorder.CheckAll();
 
         // modify memory at 3-multiple index, and check
         for (int i = 0; i < N; i += 3){
-            tester.Modify(arr[i], k * i * 3);
+            recorder.Modify(arr[i], k * i * 3);
         }
-        tester.CheckAll();
+        recorder.CheckAll();
 
         // modify memory at 5-multiple index, and check
         for (int i = 0; i < N; i += 5){
-            tester.Modify(arr[i], k * i * 5);
+            recorder.Modify(arr[i], k * i * 5);
         }
-        tester.CheckAll();
+        recorder.CheckAll();
 
         // deallocate all memory
         allocator.DeallocateAll();
-        tester.RecordDeallocateAll();
+        recorder.RecordDeallocateAll();
     }
 }
 
 
-int main() {
-    Test0();
-    Test1();
-    Test2();
-    return 0;
+inline void TestAllocator() {
+    printf("================ TEST ALLOCATOR ================\n");
+    TestAllocator0();
+    TestAllocator1();
+    TestAllocator2();
+    printf("\n");
 }
-
-
 

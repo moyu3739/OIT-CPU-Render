@@ -30,8 +30,14 @@ struct Object {
 
 class Application{
 public:
-    Application(int width, int height)
-        : width(width), height(height) {}
+    Application(
+        int width, int height,
+        bool enable_oit = false, bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ):
+        width(width), height(height),
+        enable_oit(enable_oit), use_backward_pplist(use_backward_pplist),
+        backward_blend_alpha_threshold(backward_blend_alpha_threshold)
+    {}
 
     ~Application() {}
 
@@ -45,7 +51,8 @@ public:
         int render_thread_num, int blend_thread_num,
         const glm::vec3& bg_color, float bg_depth = INFINITY, 
         int pipeline_level = 1, bool enable_oit = false,
-        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f) = 0;
+        bool use_backward_pplist = false, float backward_blend_alpha_threshold = 1.0f
+    ) = 0;
 
     virtual void UpdateTransform(const glm::mat4& transform) = 0;
 
@@ -108,6 +115,9 @@ public:
 public:
     int width;
     int height;
+    bool enable_oit;
+    bool use_backward_pplist;
+    float backward_blend_alpha_threshold;
     std::unordered_map<std::string, Object> models; // <model_name, model>
 };
 
