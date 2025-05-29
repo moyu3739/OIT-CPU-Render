@@ -57,8 +57,8 @@ std::unique_ptr<Engine> Intensity::InitEngine(
 
     // initialize model transform
     glm::vec3 translation(0.0f, 0.0f, 0.0f);
-    float rotation = glm::radians(45.0f);
-    float scale = 2.0f;
+    float rotation = glm::radians(30.0f);
+    float scale = 1.0f;
     vshader->model = GetModelTransform(translation, rotation, scale);
 
     // initialize view transform
