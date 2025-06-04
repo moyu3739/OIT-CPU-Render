@@ -6,13 +6,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include "utility.h"
-#include "Primitive.h"
-#include "Texture.h"
 #include "ImageTexture.h"
-#include "Pipeline.h"
-#include "PipelineManager.h"
-#include "Frontend.h"
 #include "Engine.h"
 
 using namespace oit;

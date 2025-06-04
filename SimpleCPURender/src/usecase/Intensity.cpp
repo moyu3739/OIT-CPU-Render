@@ -2,25 +2,6 @@
 #include "Timer.h"
 
 
-// void Intensity::LoadVertexBuffer() {
-//     // clear vertex buffers
-//     vertex_buffers.clear();
-//     // load vertex buffers
-//     for (const auto& model: models){ // for each model
-//         const std::string& model_name = model.first;
-//         const Object& obj = model.second;
-
-//         vertex_buffers[model_name] = std::vector<MyVertexShader::Input>();
-//         for (const Vertex& vertex: *obj.vertices){ // for each vertex in the model
-//             MyVertexShader::Input vs_input;
-//             vs_input.model_pos = vertex.position;
-//             vs_input.model_normal = vertex.normal;
-//             vs_input.texcoord = vertex.texcoord;
-//             vertex_buffers[model_name].emplace_back(vs_input);
-//         }
-//     }
-// }
-
 void Intensity::LoadVertexBuffer() {
     // clear vertex buffers
     vertex_buffers.clear();

@@ -6,14 +6,10 @@
 #include <random>
 #include <cassert>
 #include <glm/glm.hpp>
-#include "Application.h"
-#include "Engine.h"
-#include "FrameBuffer.h"
-#include "Frontend.h"
-#include "Pipeline.h"
-#include "Shader.h"
 #include "Shape.h"
 #include "ShapeShader.h"
+#include "Engine.h"
+#include "Application.h"
 
 using namespace oit;
 

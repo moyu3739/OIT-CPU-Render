@@ -1,10 +1,8 @@
 #pragma once
 
-#include <memory>
 #include <glm/glm.hpp>
 #include "utility.h"
 #include "Shader.h"
-#include "Texture.h"
 
 #undef max
 #undef min
@@ -23,7 +21,7 @@ public:
     struct Output: public VertexShaderOutput {
         glm::vec3 world_pos; // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
-        glm::vec3 color; // texture coordinate
+        glm::vec3 color; // vertex color
     };
 
 public:
@@ -71,7 +69,7 @@ public:
     struct Input: public FragmentShaderInput {
         glm::vec3 world_pos; // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
-        glm::vec3 color; // texture coordinate
+        glm::vec3 color; // vertex color
     };
 
     struct Output: public FragmentShaderOutput {};

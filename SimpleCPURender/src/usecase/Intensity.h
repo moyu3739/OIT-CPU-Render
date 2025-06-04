@@ -6,15 +6,9 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include "Application.h"
-#include "utility.h"
-#include "Primitive.h"
 #include "IntensityShader.h"
-#include "Texture.h"
-#include "ImageTexture.h"
-#include "Pipeline.h"
-#include "PipelineManager.h"
 #include "Engine.h"
+#include "Application.h"
 
 using namespace oit;
 
