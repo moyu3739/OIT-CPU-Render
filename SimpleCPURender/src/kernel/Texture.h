@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 
 
+namespace oit {
+
 class Texture{
 public:
     Texture() {}
@@ -39,3 +41,4 @@ private:
     float scale;
 };
 
+} // namespace oit

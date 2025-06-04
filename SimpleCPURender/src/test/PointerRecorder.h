@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "HiAllocator.h"
 
+using namespace oit;
+
 
 template <class T>
 class PointerRecorder {

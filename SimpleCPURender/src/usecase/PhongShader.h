@@ -7,9 +7,9 @@
 #undef min
 
 
-class PhongVertexShader : public VertexShader {
+class PhongVertexShader : public oit::VertexShader {
 public:
-    struct Input : public VertexShaderInput {
+    struct Input : public oit::VertexShaderInput {
         Input() {}
         Input(const glm::vec3& model_pos, const glm::vec3& model_normal):
             model_pos(model_pos), model_normal(model_normal) {}
@@ -17,7 +17,7 @@ public:
         glm::vec3 model_normal; // vertex normal in model space
     };
 
-    struct Output : public VertexShaderOutput {
+    struct Output : public oit::VertexShaderOutput {
         glm::vec3 world_pos;    // vertex position in world space
         glm::vec3 world_normal; // vertex normal in world space
         glm::vec3 view_pos;     // vertex position in view space
@@ -28,23 +28,23 @@ public:
 
     ~PhongVertexShader() {}
 
-    virtual VertexShaderInput* MakeInput() const {
+    virtual oit::VertexShaderInput* MakeInput() const {
         return new Input;
     }
 
-    virtual VertexShaderOutput* MakeOutput() const {
+    virtual oit::VertexShaderOutput* MakeOutput() const {
         return new Output;
     }
 
-    virtual void DestroyInput(VertexShaderInput* input) const {
+    virtual void DestroyInput(oit::VertexShaderInput* input) const {
         delete reinterpret_cast<Input*>(input);
     }
 
-    virtual void DestroyOutput(VertexShaderOutput* output) const {
+    virtual void DestroyOutput(oit::VertexShaderOutput* output) const {
         delete reinterpret_cast<Output*>(output);
     }
 
-    virtual void Call(const VertexShaderInput& input, VertexShaderOutput& output) {
+    virtual void Call(const oit::VertexShaderInput& input, oit::VertexShaderOutput& output) {
         const Input& rinput = reinterpret_cast<const Input&>(input);
         Output& routput = reinterpret_cast<Output&>(output);
 
@@ -65,44 +65,44 @@ public:
 };
 
 
-class PhongFragmentShader : public FragmentShader {
+class PhongFragmentShader : public oit::FragmentShader {
 public:
-    struct Input : public FragmentShaderInput {
+    struct Input : public oit::FragmentShaderInput {
         glm::vec3 world_pos;    // position in world space
         glm::vec3 world_normal; // normal in world space
         glm::vec3 view_pos;     // position in view space
     };
 
-    struct Output : public FragmentShaderOutput {};
+    struct Output : public oit::FragmentShaderOutput {};
 
 public:
     PhongFragmentShader() {}
 
     ~PhongFragmentShader() {}
 
-    virtual FragmentShaderInput* MakeInput() const override {
+    virtual oit::FragmentShaderInput* MakeInput() const override {
         return new Input;
     }
 
-    virtual FragmentShaderOutput* MakeOutput() const override {
+    virtual oit::FragmentShaderOutput* MakeOutput() const override {
         return new Output;
     }
 
-    virtual void DestroyInput(FragmentShaderInput* input) const override {
+    virtual void DestroyInput(oit::FragmentShaderInput* input) const override {
         delete reinterpret_cast<Input*>(input);
     }
 
-    virtual void DestroyOutput(FragmentShaderOutput* output) const override {
+    virtual void DestroyOutput(oit::FragmentShaderOutput* output) const override {
         delete reinterpret_cast<Output*>(output);
     }
 
     // Interpolate vertex attributes
     virtual void Interpolate(
-        const VertexShaderOutput& v0,
-        const VertexShaderOutput& v1,
-        const VertexShaderOutput& v2,
+        const oit::VertexShaderOutput& v0,
+        const oit::VertexShaderOutput& v1,
+        const oit::VertexShaderOutput& v2,
         const glm::vec3& barycentric,
-        FragmentShaderInput& fs_input
+        oit::FragmentShaderInput& fs_input
     ) override {
         const auto& rv0 = reinterpret_cast<const PhongVertexShader::Output&>(v0);
         const auto& rv1 = reinterpret_cast<const PhongVertexShader::Output&>(v1);
@@ -114,7 +114,7 @@ public:
         rfs_input.view_pos = InterpolateAttr(rv0.view_pos, rv1.view_pos, rv2.view_pos, barycentric);
     }
 
-    virtual void Call(const FragmentShaderInput& input, FragmentShaderOutput& output) {
+    virtual void Call(const oit::FragmentShaderInput& input, oit::FragmentShaderOutput& output) {
         const Input& rinput = reinterpret_cast<const Input&>(input);
 
         // Use uniform color

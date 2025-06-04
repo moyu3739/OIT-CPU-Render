@@ -13,6 +13,8 @@
 #include "Timer.h"
 
 
+namespace oit {
+
 // maintain pipeline manager, frame buffer manager and frontend
 class Engine {
 public:
@@ -458,4 +460,6 @@ private:
     FrameBufferManager* frame_buffer_manager;
     Frontend* frontend;
 };
+
+} // namespace oit
 

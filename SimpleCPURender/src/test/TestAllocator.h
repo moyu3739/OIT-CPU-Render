@@ -3,6 +3,9 @@
 #include "MemoryPool.h"
 #include "HiAllocator.h"
 
+using namespace oit;
+
+
 constexpr int block_size_test = 4096;
 using MemoryPool_4K = MemoryPool<block_size_test>;
 template <class T>

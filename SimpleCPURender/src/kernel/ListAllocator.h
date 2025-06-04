@@ -6,6 +6,8 @@
 #include "HiAllocator.h"
 
 
+namespace oit {
+
 template <int block_size, typename T>
 class BatchFreeAllocator: public HiAllocator<block_size, T> {
     using HiAllocator_t = HiAllocator<block_size, T>;
@@ -29,3 +31,4 @@ using ListNode = ThreadSafeInsertListNode<Fragment>;
 using ListAllocator = BatchFreeAllocator<block_size, ListNode>;
 using ListAllocatorGroup = AllocatorGroup<ListAllocator>;
 
+} // namespace oit

@@ -16,6 +16,8 @@
 #include "PipelineManager.h"
 #include "Engine.h"
 
+using namespace oit;
+
 
 class Intensity: public Application {
     using MyVertexShader   = IntensityVertexShader;

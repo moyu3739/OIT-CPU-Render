@@ -3,6 +3,8 @@
 #include <atomic>
 
 
+namespace oit {
+
 template <typename T>
 struct ThreadSafeInsertListNode{
     T data;
@@ -245,3 +247,5 @@ private:
 private:
     std::atomic<Node*> head;
 };
+
+} // namespace oit

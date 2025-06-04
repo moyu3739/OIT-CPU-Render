@@ -14,6 +14,8 @@
 #pragma comment(lib, "gdiplus.lib")
 
 
+namespace oit {
+
 class Frontend {
 public:
     Frontend() {}
@@ -132,7 +134,7 @@ public:
     }
 
     void LoadFromFrameBuffer_8UC3(const FrameBuffer* frame_buffer) {
-        static Format format{Format::TOP_DOWN, Format::BGR, Format::UINT8};
+        static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGR, FrameFormat::UINT8};
 
         if (mat.cols != frame_buffer->width || mat.rows != frame_buffer->height) {
             frame_buffer->DeleteColorBuffer(data);
@@ -144,7 +146,7 @@ public:
     }
 
     void LoadFromFrameBuffer_16UC3(const FrameBuffer* frame_buffer) {
-        static Format format{Format::TOP_DOWN, Format::BGR, Format::UINT16};
+        static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGR, FrameFormat::UINT16};
 
         if (mat.cols != frame_buffer->width || mat.rows != frame_buffer->height) {
             frame_buffer->DeleteColorBuffer(data);
@@ -156,7 +158,7 @@ public:
     }
 
     void LoadFromFrameBuffer_32FC4(const FrameBuffer* frame_buffer) {
-        static Format format{Format::TOP_DOWN, Format::BGRA, Format::FLOAT32};
+        static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGRA, FrameFormat::FLOAT32};
 
         if (mat.cols != frame_buffer->width || mat.rows != frame_buffer->height) {
             frame_buffer->DeleteColorBuffer(data);
@@ -168,7 +170,7 @@ public:
     }
 
     void LoadFromFrameBuffer_64FC4(const FrameBuffer* frame_buffer) {
-        static Format format{Format::TOP_DOWN, Format::BGRA, Format::FLOAT64};
+        static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGRA, FrameFormat::FLOAT64};
 
         if (mat.cols != frame_buffer->width || mat.rows != frame_buffer->height) {
             frame_buffer->DeleteColorBuffer(data);
@@ -250,7 +252,7 @@ public:
     }
 
     void LoadFromFrameBuffer_8UC3(const FrameBuffer* frame_buffer) {
-        static Format format{Format::TOP_DOWN, Format::BGR, Format::UINT8};
+        static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGR, FrameFormat::UINT8};
 
         if (mat_back.cols != frame_buffer->width || mat_back.rows != frame_buffer->height) {
             frame_buffer->DeleteColorBuffer(data_back);
@@ -368,7 +370,7 @@ public:
     }
 
     virtual void Load(const FrameBuffer* frame_buffer, unsigned long long info) override {
-        // static Format format{Format::TOP_DOWN, Format::BGRA, Format::UINT8};
+        // static FrameFormat format{FrameFormat::TOP_DOWN, FrameFormat::BGRA, FrameFormat::UINT8};
 
         if (m_width != frame_buffer->width || m_height != frame_buffer->height) {
             m_width = frame_buffer->width;
@@ -465,4 +467,6 @@ private:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
 };
+
+} // namespace oit
 

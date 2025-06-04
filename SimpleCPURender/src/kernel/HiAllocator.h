@@ -7,6 +7,8 @@
 #include "MemoryPool.h"
 
 
+namespace oit {
+
 template <int block_size, typename T>
 class HiAllocator{
 public:
@@ -158,3 +160,4 @@ private:
     std::vector<Allocator*> allocators;
 };
 
+} // namespace oit

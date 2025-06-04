@@ -4,6 +4,8 @@
 #include "FrameBuffer.h"
 
 
+namespace oit {
+
 class FrameBufferManager {
 public:
     FrameBufferManager() {}
@@ -177,4 +179,6 @@ public:
         return buffers[1];
     }
 };
+
+} // namespace oit
 

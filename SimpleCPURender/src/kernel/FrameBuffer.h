@@ -9,7 +9,9 @@
 #include "PerPixelListBuffer.h"
 
 
-struct Format {
+namespace oit {
+
+struct FrameFormat {
     enum Order {
         TOP_DOWN,
         BOTTOM_UP
@@ -264,19 +266,19 @@ public:
 
     // create a new empty color buffer with the given frame size and format
     // @param[in] channel  channel layout, 
-    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}
-    // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
-    static void* NewColorBuffer(int width, int height, Format::Channel channel, Format::Type type) {
-        return new unsigned char[width * height * Format::GetChannelSize(type) * Format::GetChannelNumber(channel)];
+    //              in `FrameFormat::` {`RGB`, `RGBA`, `ARGB`, `BGR`, `BGRA`, `ABGR`}
+    // @param[in] type  data type, in `FrameFormat::` {`UINT8`, `UINT16`, `FLOAT32`, `FLOAT64`}
+    static void* NewColorBuffer(int width, int height, FrameFormat::Channel channel, FrameFormat::Type type) {
+        return new unsigned char[width * height * FrameFormat::GetChannelSize(type) * FrameFormat::GetChannelNumber(channel)];
     }
 
     // create a new empty color buffer with the given frame size and format
     // @param[in] format  structure of format: {order, channel, type}
-    // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] format.order  buffer memory order, in `FrameFormat::` {`TOP_DOWN`, `BOTTOM_UP`}
     // @param[in] format.channel  channel layout,
-    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}
-    // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
-    static void* NewColorBuffer(int width, int height, const Format& format) {
+    //              in `FrameFormat::` {`RGB`, `RGBA`, `ARGB`, `BGR`, `BGRA`, `ABGR`}
+    // @param[in] format.type  data type, in `FrameFormat::` {`UINT8`, `UINT16`, `FLOAT32`, `FLOAT64`}
+    static void* NewColorBuffer(int width, int height, const FrameFormat& format) {
         return NewColorBuffer(width, height, format.channel, format.type);
     }
 
@@ -286,24 +288,24 @@ public:
     }
 
     // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
-    // @param[in] order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] order  buffer memory order, in `FrameFormat::` {`TOP_DOWN`, `BOTTOM_UP`}
     // @param[in] channel  channel layout,
-    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}.
+    //              in `FrameFormat::` {`RGB`, `RGBA`, `ARGB`, `BGR`, `BGRA`, `ABGR`}.
     //              alpha channel will be always set to 1.0f
-    // @param[in] type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
-    void WriteColorBuffer(void* ptr, Format::Order order, Format::Channel channel, Format::Type type) const {
+    // @param[in] type  data type, in `FrameFormat::` {`UINT8`, `UINT16`, `FLOAT32`, `FLOAT64`}
+    void WriteColorBuffer(void* ptr, FrameFormat::Order order, FrameFormat::Channel channel, FrameFormat::Type type) const {
         switch(order) {
-            case Format::TOP_DOWN:
+            case FrameFormat::TOP_DOWN:
                 for (int y = height - 1; y >= 0; y--) {
                     for (int x = 0; x < width; x++) {
-                        Format::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
+                        FrameFormat::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
                     }
                 }
                 break;
-            case Format::BOTTOM_UP:
+            case FrameFormat::BOTTOM_UP:
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        Format::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
+                        FrameFormat::WriteOnePixel(GetColorAt(x, y), ptr, channel, type);
                     }
                 }
                 break;
@@ -312,12 +314,12 @@ public:
 
     // write color data in the frame buffer to the given color buffer (pointer `ptr`) with the given format
     // @param[in] format  structure of format: {order, channel, type}
-    // @param[in] format.order  buffer memory order, in {`Format::TOP_DOWN`, `Format::BOTTOM_UP`}
+    // @param[in] format.order  buffer memory order, in `FrameFormat::` {`TOP_DOWN`, `BOTTOM_UP`}
     // @param[in] format.channel  channel layout,
-    //              in {`Format::RGB`, `Format::RGBA`, `Format::ARGB`, `Format::BGR`, `Format::BGRA`, `Format::ABGR`}.
+    //              in `FrameFormat::` {`RGB`, `RGBA`, `ARGB`, `BGR`, `BGRA`, `ABGR`}.
     //              alpha channel will be always set to 1.0f
-    // @param[in] format.type  data type, in {`Format::UINT8`, `Format::UINT16`, `Format::FLOAT32`, `Format::FLOAT64`}
-    void WriteColorBuffer(void* ptr, const Format& format) const {
+    // @param[in] format.type  data type, in `FrameFormat::` {`UINT8`, `UINT16`, `FLOAT32`, `FLOAT64`}
+    void WriteColorBuffer(void* ptr, const FrameFormat& format) const {
         WriteColorBuffer(ptr, format.order, format.channel, format.type);
     }
 
@@ -358,4 +360,6 @@ private:
     PerPixelListBuffer* pplist_buffer; // per-pixel linked list buffer
     bool pplist_buffer_touched = false; // whether the pplist buffer has been touched since last clear
 };
+
+} // namespace oit
 

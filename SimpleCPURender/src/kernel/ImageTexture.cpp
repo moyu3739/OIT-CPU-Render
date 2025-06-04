@@ -7,6 +7,8 @@
 #include <stb_image.h>
 #include "ImageTexture.h"
 
+using namespace oit;
+
 
 glm::vec4 ImageTexture::Wrapper::WrapRepeat(
     int x, int y, int width, int height,

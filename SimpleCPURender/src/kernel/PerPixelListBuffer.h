@@ -6,6 +6,8 @@
 #include "ListAllocator.h"
 
 
+namespace oit {
+
 class PerPixelListBuffer {
 protected:
     using PerPixelList = ThreadSafeInsertList<Fragment>;
@@ -168,3 +170,4 @@ private:
     float blend_alpha_threshold;
 };
 
+} // namespace oit

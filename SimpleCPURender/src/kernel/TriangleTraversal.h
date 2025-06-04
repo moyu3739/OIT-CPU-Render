@@ -4,6 +4,8 @@
 #include "utility.h"
 
 
+namespace oit {
+
 enum TriangleTraversalType {
     ON_FACE,
     ON_EDGE,
@@ -128,3 +130,4 @@ private:
     float half_thickness; // half of vertex thickness
 };
 
+} // namespace oit

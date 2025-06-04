@@ -2,6 +2,8 @@
 #include <vector>
 
 
+namespace oit {
+
 namespace ut {
 
 template <typename T>
@@ -89,5 +91,6 @@ inline float Pixel2Screen(int pixel, int range){
     return (2.0f * pixel + 1.0f) / range - 1.0f;
 }
 
-}
+} // namespace ut
 
+} // namespace oit

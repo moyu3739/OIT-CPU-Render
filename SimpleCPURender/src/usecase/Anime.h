@@ -17,6 +17,8 @@
 #include "PipelineManager.h"
 #include "Engine.h"
 
+using namespace oit;
+
 
 class Anime: public Application {
     using MyVertexShader   = AnimeStyleVertexShader;

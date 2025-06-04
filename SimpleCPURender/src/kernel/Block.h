@@ -1,6 +1,8 @@
 #pragma once
 
 
+namespace oit {
+
 struct BlockMeta {
     int next_pos; // the next byte to be allocated
     int in_use; // the number of bytes in use
@@ -55,3 +57,5 @@ public:
 private:
     char data[capacity];
 };
+
+} // namespace oit

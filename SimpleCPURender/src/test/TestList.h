@@ -7,6 +7,8 @@
 #include "Timer.h"
 #include "ThreadSafeInsertList.h"
 
+using namespace oit;
+
 
 template <typename T>
 class StandardAllocator{

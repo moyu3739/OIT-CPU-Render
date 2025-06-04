@@ -12,6 +12,8 @@
 #include "FrameBuffer.h"
 
 
+namespace oit {
+
 class Pipeline {
     friend class PipelineManager;
 public:
@@ -267,3 +269,4 @@ private:
     TriangleTraversal* triangle_traversal = nullptr;
 };
 
+} // namespace oit

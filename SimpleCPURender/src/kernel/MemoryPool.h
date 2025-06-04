@@ -7,6 +7,8 @@
 #include "Block.h"
 
 
+namespace oit {
+
 template <int block_size>
 class MemoryPool {
     using Block_t = Block<block_size>;
@@ -106,3 +108,5 @@ private:
     std::list<Block_t*> available_blocks;
     std::mutex mtx;
 };
+
+} // namespace oit

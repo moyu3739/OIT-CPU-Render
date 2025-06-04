@@ -40,7 +40,7 @@ glm::mat4 GetModelTransform(const glm::vec3& translation, float rotation, float 
 }
 
 
-void LoadModel(const std::string& obj_path, VertexBuffer& vertex_buffer) {
+void LoadModel(const std::string& obj_path, oit::VertexBuffer& vertex_buffer) {
     // use tiny_obj_loader to load mesh data
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -120,12 +120,12 @@ void QuickStart() {
     fshader->alpha = 0.5f;
 
     // load a cube to vertex buffer
-    VertexBuffer vertex_buffer;
+    oit::VertexBuffer vertex_buffer;
     LoadModel("asset/obj/bunny.obj", vertex_buffer);
 
     // create engine and create pipeline in it
-    auto* engine = new Engine(width, height, 16, 16, glm::vec3(1.0f), INFINITY, 3, true);
-    engine->CreatePipeline(vertex_buffer, vshader, fshader, ON_FACE, true);
+    auto* engine = new oit::Engine(width, height, 16, 16, glm::vec3(1.0f), INFINITY, 3, true);
+    engine->CreatePipeline(vertex_buffer, vshader, fshader, oit::ON_FACE, true);
 
     // engine.SerialRender();
     

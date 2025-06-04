@@ -15,6 +15,8 @@
 #include "Shape.h"
 #include "ShapeShader.h"
 
+using namespace oit;
+
 
 enum ShapeType {
     SHAPE_SPHERE,

@@ -5,6 +5,8 @@
 #include "utility.h"
 
 
+namespace oit {
+
 struct VertexShaderInput {
 protected:
     VertexShaderInput() {}
@@ -192,3 +194,5 @@ public:
 private:
     std::vector<ShaderIO*> shader_io_list;
 };
+
+} // namespace oit

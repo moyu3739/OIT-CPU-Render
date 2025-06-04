@@ -5,6 +5,8 @@
 #include "Texture.h"
 
 
+namespace oit {
+
 enum WrapMode{
     REPEAT,
     CLAMP_TO_EDGE,
@@ -187,3 +189,5 @@ private:
     Wrapper wrapper;
     Filter filter;
 };
+
+} // namespace oit

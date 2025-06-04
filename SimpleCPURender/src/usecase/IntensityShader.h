@@ -8,6 +8,8 @@
 #undef max
 #undef min
 
+using namespace oit;
+
 
 class IntensityVertexShader: public VertexShader{
 public:

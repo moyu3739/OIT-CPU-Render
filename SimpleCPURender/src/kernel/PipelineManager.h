@@ -10,6 +10,8 @@
 #include "FrameBuffer.h"
 
 
+namespace oit {
+
 class PipelineManager {
 public:
     // @param[in] render_thread_num  number of threads to render the pipelines
@@ -202,3 +204,4 @@ private:
     std::vector<Pipeline*> tra_pipelines; // transparent pipelines
 };
 
+} // namespace oit

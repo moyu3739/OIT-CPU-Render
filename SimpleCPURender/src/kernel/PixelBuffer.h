@@ -5,6 +5,8 @@
 #include "Primitive.h"
 
 
+namespace oit {
+
 class PixelBuffer {
 public:
     PixelBuffer(int width, int height, const glm::vec3& bg_color = glm::vec3(0.0f), float bg_depth = INFINITY)
@@ -93,3 +95,4 @@ private:
     std::mutex* mtx_buffer;
 };
 
+} // namespace oit

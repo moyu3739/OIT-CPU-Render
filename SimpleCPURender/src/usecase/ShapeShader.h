@@ -9,6 +9,8 @@
 #undef max
 #undef min
 
+using namespace oit;
+
 
 class ShapeVertexShader: public VertexShader{
 public:

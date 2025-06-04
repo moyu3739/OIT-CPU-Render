@@ -5,6 +5,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
+using namespace oit;
+
 
 class AnimeStyleVertexShader: public VertexShader{
 public:
