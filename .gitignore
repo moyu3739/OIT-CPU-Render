@@ -9,3 +9,7 @@ sponza/
 
 opencv_world4100d.dll
 opencv_world4100d.pdb
+opencv_world4100.dll
+SimpleCPURender/external/opencv2/x64/vc16/bin/opencv_world4100.dll
+SimpleCPURender/external/opencv2/x64/vc16/bin/opencv_world4100d.dll
+SimpleCPURender/external/opencv2/x64/vc16/bin/opencv_world4100d.pdb
