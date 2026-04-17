@@ -6,3 +6,6 @@
 sponza/
 
 *.user
+
+opencv_world4100d.dll
+opencv_world4100d.pdb
