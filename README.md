@@ -6,6 +6,8 @@
 
 项目代码在 `SimpleCPURender` 目录中（simple 其实不 simple...）。本项目实现了一个运行在 **CPU** 上的软渲染器内核，并提供多个可直接运行的用例（场景/风格/压力测试等）。你可以把它当作一个“可扩展的 C++ 渲染实验平台”：通过替换/编写着色器、加载模型与纹理、切换渲染用例，在不依赖 GPU 渲染管线的前提下完成实时/交互式的渲染展示。
 
+[查看项目报告](report.pdf)
+
 ---
 
 ## 效果预览
@@ -14,10 +16,10 @@
 
 | 场景 | 预览 |
 | --- | --- |
-| Cornell Box / 形体组合 | ![](image/cornell.png) |
-| 模型渲染（示例：bunny） | ![](image/bunny.png) |
-| 模型渲染（示例：dragon） | ![](image/dragon.png) |
-| 模型渲染（示例：character） | ![](image/character.png) |
+| Cornell Box / 形体组合 | ![](image/cornell_loop.gif) |
+| 模型渲染（示例：dragon） | ![](image/dragon_loop.gif) |
+| 模型渲染（示例：earth） | ![](image/earth-t_loop.gif) |
+| 模型渲染（示例：character） | ![](image/character_loop.gif) |
 
 项目整体架构与渲染循环示意：
 
